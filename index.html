@@ -381,7 +381,7 @@
             } catch(e) { showError("作成エラー: " + e.message); }
         }
 
-        // --- タスク操作関数群 ---
+        // --- タスク・プロジェクト操作関数群 ---
         window.toggleTask = async function(pid, tid) {
             const p = window.projects.find(x => x.id === pid);
             if(p){ const t = p.tasks.find(x => x.id === tid); if(t){ t.completed = !t.completed; t.completedAt = t.completed ? getJSTDateStr() : null; window.render(); await saveProject(p); } }
@@ -405,8 +405,28 @@
             if(p){ p.tasks.push({id:'t_'+Math.random().toString(36).substr(2,9), name:n.value, dueDate:d.value, completed:false});
                    p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)); n.value=''; d.value=''; window.render(); await saveProject(p); }
         }
-        window.deleteProject = async function(pid) { if(confirm("削除しますか？")) await window.removeProject(pid); }
+        window.deleteProject = async function(pid) { if(confirm("プロジェクトを削除しますか？")) await window.removeProject(pid); }
         window.toggleProjectExpand = async function(pid) { const p = window.projects.find(x => x.id === pid); if(p){ p.isExpanded = !p.isExpanded; window.render(); await saveProject(p); } }
+
+        // --- プロジェクト編集機能 ---
+        window.startEdit = (id) => { const p = window.projects.find(x => x.id === id); if(p){ p.isEditing = true; p.isExpanded = true; window.render(); }};
+        window.cancelEdit = (id) => { const p = window.projects.find(x => x.id === id); if(p){ p.isEditing = false; window.render(); }};
+        window.saveEdit = async (id) => {
+            const p = window.projects.find(x => x.id === id);
+            if(p){
+                p.name = document.getElementById(`editName_${id}`).value;
+                p.presentationTitle = document.getElementById(`editTitle_${id}`).value;
+                p.presentationFormat = document.getElementById(`editFormat_${id}`).value;
+                p.url = document.getElementById(`editUrl_${id}`).value;
+                p.location = document.getElementById(`editLocation_${id}`).value;
+                p.startDate = document.getElementById(`editStartDate_${id}`).value;
+                const endEl = document.getElementById(`editEndDate_${id}`);
+                p.endDate = endEl ? endEl.value || p.startDate : p.startDate;
+                p.isEditing = false;
+                window.render();
+                await saveProject(p);
+            }
+        };
 
         // --- 査読タスク追加機能 ---
         window.addReviewTasks = async function(pid) {
@@ -468,6 +488,43 @@
 
                 html += `
                 <div class="bg-white border ${proj.projectType === 'paper' ? 'border-rose-300' : 'border-blue-300'} rounded-xl shadow-sm overflow-hidden">
+                    ${proj.isEditing ? `
+                    <div class="p-4 bg-slate-50 border-b border-slate-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-3 text-xs">
+                            <div>${proj.projectType === 'paper' ? '投稿先' : '学会名'}: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>
+                            <div class="lg:col-span-2">${proj.projectType === 'paper' ? '論文タイトル' : '発表タイトル'}: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>
+                            
+                            <div>${proj.projectType === 'paper' ? '原稿種別' : '形式'}: 
+                                <select id="editFormat_${proj.id}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500">
+                                    ${proj.projectType === 'paper' 
+                                        ? `<option value="論文" ${proj.presentationFormat==='論文'?'selected':''}>論文</option>
+                                           <option value="実践報告" ${proj.presentationFormat==='実践報告'?'selected':''}>実践報告</option>
+                                           <option value="研究ノート" ${proj.presentationFormat==='研究ノート'?'selected':''}>研究ノート</option>
+                                           <option value="調査報告" ${proj.presentationFormat==='調査報告'?'selected':''}>調査報告</option>
+                                           <option value="その他" ${proj.presentationFormat==='その他'?'selected':''}>その他</option>`
+                                        : `<option value="" ${proj.presentationFormat===''?'selected':''}>未定</option>
+                                           <option value="口頭" ${proj.presentationFormat==='口頭'?'selected':''}>口頭</option>
+                                           <option value="ポスター" ${proj.presentationFormat==='ポスター'?'selected':''}>ポスター</option>
+                                           <option value="パネル" ${proj.presentationFormat==='パネル'?'selected':''}>パネル</option>
+                                           <option value="デモ" ${proj.presentationFormat==='デモ'?'selected':''}>デモ</option>
+                                           <option value="その他" ${proj.presentationFormat==='その他'?'selected':''}>その他</option>`
+                                    }
+                                </select>
+                            </div>
+                            
+                            <div>URL: <input type="url" id="editUrl_${proj.id}" value="${proj.url}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>
+                            <div>${proj.projectType === 'paper' ? '規定メモ' : '開催地'}: <input type="text" id="editLocation_${proj.id}" value="${proj.location}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>
+                            
+                            <div class="flex gap-2">
+                                <div>${proj.projectType === 'paper' ? '目標投稿日' : '開始日'}: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>
+                                ${proj.projectType === 'conference' ? `<div>終了日: <input type="date" id="editEndDate_${proj.id}" value="${proj.endDate}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>` : `<input type="hidden" id="editEndDate_${proj.id}" value="${proj.endDate}">`}
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <button onclick="cancelEdit('${proj.id}')" class="px-3 py-1.5 bg-white border border-slate-300 font-bold text-slate-600 rounded hover:bg-slate-100 transition shadow-sm">キャンセル</button>
+                            <button onclick="saveEdit('${proj.id}')" class="px-4 py-1.5 bg-indigo-600 font-bold text-white rounded hover:bg-indigo-700 transition shadow-sm">保存</button>
+                        </div>
+                    </div>` : `
                     <div class="p-4 flex flex-col sm:flex-row justify-between items-center cursor-pointer hover:bg-slate-50" onclick="toggleProjectExpand('${proj.id}')">
                         <div class="flex items-center gap-3">
                             <div class="text-xl">${proj.isExpanded ? '🔽' : '▶️'}</div>
@@ -479,10 +536,11 @@
                         <div class="flex items-center gap-4 mt-4 sm:mt-0">
                             ${proj.projectType === 'paper' ? `<button onclick="event.stopPropagation(); addReviewTasks('${proj.id}')" class="text-xs bg-rose-100 text-rose-800 px-2 py-1 rounded font-bold hover:bg-rose-200 border border-rose-200 shadow-sm">＋ 査読対応追加</button>` : ''}
                             <span class="text-xs font-bold">${done}/${proj.tasks.length} (${prog}%)</span>
-                            <button onclick="event.stopPropagation(); deleteProject('${proj.id}')">🗑️</button>
+                            <button onclick="event.stopPropagation(); startEdit('${proj.id}')" title="プロジェクトを編集">✏️</button>
+                            <button onclick="event.stopPropagation(); deleteProject('${proj.id}')" title="プロジェクトを削除">🗑️</button>
                         </div>
-                    </div>
-                    <div class="${proj.isExpanded ? 'block' : 'hidden'} border-t border-slate-100 bg-white">
+                    </div>`}
+                    <div class="${proj.isExpanded && !proj.isEditing ? 'block' : 'hidden'} border-t border-slate-100 bg-white">
                         <table class="w-full text-left text-sm">
                             <tbody class="divide-y divide-slate-300 border-t border-slate-300">
                                 ${visibleTasks.map(t => {
