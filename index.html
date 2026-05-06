@@ -33,14 +33,12 @@
                     <button id="logout-btn" class="bg-slate-100 text-slate-600 px-3 py-1.5 rounded text-xs font-bold hover:bg-slate-200 transition border border-slate-200 hidden">ログアウト</button>
                 </div>
                 <div id="overview-stats" class="text-right text-sm text-slate-600 font-bold bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 hidden md:block">
-                    <!-- 統計情報 -->
-                </div>
+                    </div>
             </div>
         </header>
 
         <div id="error-display" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-bold whitespace-pre-wrap"></div>
 
-        <!-- 予定追加フォーム -->
         <div class="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl mb-8 shadow-sm">
             <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2 cursor-pointer select-none mb-4" onclick="toggleAddForm()">
                 <span class="text-indigo-600">➕</span> 新しい予定（学会・論文）を追加
@@ -48,7 +46,6 @@
             </h2>
             <div id="add-project-form" class="hidden mt-4">
                 
-                <!-- プロジェクト種別選択 -->
                 <div class="flex gap-6 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200">
                     <label class="flex items-center gap-2 font-bold text-sm cursor-pointer text-blue-800">
                         <input type="radio" name="projType" value="conference" checked onchange="toggleFormMode()" class="w-4 h-4 text-blue-600">
@@ -60,7 +57,6 @@
                     </label>
                 </div>
 
-                <!-- 学会用入力フォーム -->
                 <div id="form-conference" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div class="lg:col-span-1">
                         <label class="block text-xs font-bold text-slate-500 mb-1">学会・大会名 <span class="text-red-500">*</span></label>
@@ -101,7 +97,6 @@
                     </div>
                 </div>
 
-                <!-- 論文用入力フォーム -->
                 <div id="form-paper" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div class="lg:col-span-1">
                         <label class="block text-xs font-bold text-slate-500 mb-1">投稿先（学会誌・紀要） <span class="text-red-500">*</span></label>
@@ -158,9 +153,9 @@
             </div>
         </div>
         <div class="mt-4 text-center text-slate-400 text-[10px]">
-            ※タスクの右端にある 📅 ボタンを押すと、Googleカレンダーにタスクを登録できます。<br>
-            ※完了したタスクは翌日になると自動的に非表示になります。<br>
-            ※期日を過ぎた未完了タスクは赤字で強調表示されます。
+            ※タスク名の部分をクリックすると内容を直接編集できます。<br>
+            ※右端にある 📅 ボタンでGoogleカレンダーに登録できます。<br>
+            ※完了したタスクは翌日になると自動的に非表示になります。
         </div>
     </div>
 
@@ -181,8 +176,6 @@
 
         window.projects = [];
         window.currentTab = 'timeline';
-
-        // ★既存ツールとのデータ分離のためのキー設定★
         const APP_ID = 'academic_manager_v1'; 
         const LOCAL_STORAGE_KEY = 'academic_projects_v1';
 
@@ -234,16 +227,10 @@
             return completedAt < getJSTDateStr();
         }
 
-        const showError = (msg) => {
-            const el = document.getElementById('error-display');
-            if (el) { el.textContent = msg; el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 10000); }
-        };
-
-        // --- Googleカレンダー連携用URL生成 ---
         window.getGoogleCalendarUrl = function(taskName, dateStr, projName, title) {
             if (!dateStr) return '#';
             const d = new Date(dateStr);
-            const d2 = new Date(d); d2.setDate(d2.getDate() + 1); // 終日予定にするため翌日を指定
+            const d2 = new Date(d); d2.setDate(d2.getDate() + 1);
             const formatDate = (dt) => `${dt.getFullYear()}${String(dt.getMonth() + 1).padStart(2, '0')}${String(dt.getDate()).padStart(2, '0')}`;
             const text = encodeURIComponent(`[${projName}] ${taskName}`);
             const details = encodeURIComponent(`研究活動タスク管理ツールより。\n${title ? 'タイトル: ' + title : ''}`);
@@ -255,30 +242,26 @@
             auth = getAuth(app);
             db = getFirestore(app);
             provider = new GoogleAuthProvider();
-
-            const loginBtn = document.getElementById('login-btn');
-            const logoutBtn = document.getElementById('logout-btn');
-            const userInfo = document.getElementById('user-info');
-            const syncStatus = document.getElementById('sync-status');
-
-            loginBtn.onclick = async () => { try { await signInWithPopup(auth, provider); } catch (e) { showError("ログインエラー: " + e.message); } };
-            logoutBtn.onclick = async () => { await signOut(auth); window.projects = []; window.render(); };
-
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
                 if (user) {
-                    userInfo.innerHTML = `👤 <span class="font-bold text-indigo-700">${user.displayName || 'ユーザー'}</span> さん`;
-                    loginBtn.classList.add('hidden'); logoutBtn.classList.remove('hidden');
-                    syncStatus.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-full border border-emerald-200"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 同期オン</span>`;
+                    document.getElementById('user-info').innerHTML = `👤 <span class="font-bold text-indigo-700">${user.displayName || 'ユーザー'}</span> さん`;
+                    document.getElementById('login-btn').classList.add('hidden');
+                    document.getElementById('logout-btn').classList.remove('hidden');
                     setupFirestoreListener();
                 } else {
-                    userInfo.innerHTML = `同期機能は未ログインです`;
-                    loginBtn.classList.remove('hidden'); logoutBtn.classList.add('hidden');
-                    syncStatus.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 text-[11px] font-bold rounded-full border border-amber-200"><span class="w-2 h-2 rounded-full bg-amber-500"></span> ローカル保存</span>`;
+                    document.getElementById('user-info').innerHTML = `同期機能は未ログインです`;
+                    document.getElementById('login-btn').classList.remove('hidden');
+                    document.getElementById('logout-btn').classList.add('hidden');
                     fallbackInit();
                 }
             });
         } catch (e) { fallbackInit(); }
+
+        const showError = (msg) => {
+            const el = document.getElementById('error-display');
+            if (el) { el.textContent = msg; el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 10000); }
+        };
 
         function fallbackInit() {
             const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -294,7 +277,7 @@
                 snapshot.forEach(doc => { synced.push({ id: doc.id, ...doc.data() }); });
                 window.projects = synced;
                 window.render();
-            }, (e) => showError("同期エラー"));
+            });
         }
 
         async function saveProject(proj) {
@@ -303,124 +286,98 @@
                     const docRef = doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'projects', proj.id);
                     await setDoc(docRef, proj);
                 } else {
-                    const idx = window.projects.findIndex(p => p.id === proj.id);
-                    if (idx >= 0) window.projects[idx] = proj; else window.projects.push(proj);
                     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(window.projects));
                 }
-            } catch(e) { showError("保存エラー: " + e.message); }
+            } catch(e) { showError("保存エラー"); }
             window.render();
         }
 
-        window.removeProject = async function(projectId) {
-            try {
-                if (currentUser) {
-                    const docRef = doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'projects', projectId);
-                    await deleteDoc(docRef);
-                } else {
-                    window.projects = window.projects.filter(p => p.id !== projectId);
-                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(window.projects));
-                    window.render();
-                }
-            } catch(e) { showError("削除エラー"); }
-        }
+        window.toggleAddForm = () => {
+            const f = document.getElementById('add-project-form');
+            const i = document.getElementById('add-form-icon');
+            f.classList.toggle('hidden');
+            i.textContent = f.classList.contains('hidden') ? '▼' : '▲';
+        };
 
-        window.toggleAddForm = function() {
-            const form = document.getElementById('add-project-form');
-            const icon = document.getElementById('add-form-icon');
-            if (form.classList.contains('hidden')) { form.classList.remove('hidden'); icon.textContent = '▲'; } 
-            else { form.classList.add('hidden'); icon.textContent = '▼'; }
-        }
-
-        window.toggleFormMode = function() {
+        window.toggleFormMode = () => {
             const type = document.querySelector('input[name="projType"]:checked').value;
-            if(type === 'conference') {
-                document.getElementById('form-conference').classList.remove('hidden');
-                document.getElementById('form-paper').classList.add('hidden');
+            document.getElementById('form-conference').classList.toggle('hidden', type !== 'conference');
+            document.getElementById('form-paper').classList.toggle('hidden', type !== 'paper');
+        };
+
+        window.importProject = async () => {
+            const type = document.querySelector('input[name="projType"]:checked').value;
+            let name, title, format, url, location, startDate, endDate, templates;
+
+            if (type === 'conference') {
+                name = document.getElementById('simConfName').value;
+                title = document.getElementById('simConfTitle').value;
+                format = document.getElementById('simConfFormat').value;
+                url = document.getElementById('simConfUrl').value;
+                location = document.getElementById('simConfLocation').value || '未設定';
+                startDate = document.getElementById('simConfStartDate').value;
+                endDate = document.getElementById('simConfEndDate').value || startDate;
+                templates = TASK_TEMPLATES_CONF;
             } else {
-                document.getElementById('form-conference').classList.add('hidden');
-                document.getElementById('form-paper').classList.remove('hidden');
+                name = document.getElementById('simPaperName').value;
+                title = document.getElementById('simPaperTitle').value;
+                format = document.getElementById('simPaperFormat').value;
+                url = document.getElementById('simPaperUrl').value;
+                location = document.getElementById('simPaperLocation').value || '指定なし';
+                startDate = document.getElementById('simPaperStartDate').value;
+                endDate = startDate;
+                templates = TASK_TEMPLATES_PAPER;
             }
-        }
 
-        window.importProject = async function() {
-            try {
-                const type = document.querySelector('input[name="projType"]:checked').value;
-                let name, title, format, url, location, startDate, endDate, templates;
+            if (!name || !startDate) return alert('必須項目を入力してください。');
 
-                if (type === 'conference') {
-                    name = document.getElementById('simConfName').value;
-                    title = document.getElementById('simConfTitle').value;
-                    format = document.getElementById('simConfFormat').value;
-                    url = document.getElementById('simConfUrl').value;
-                    location = document.getElementById('simConfLocation').value || '未設定';
-                    startDate = document.getElementById('simConfStartDate').value;
-                    endDate = document.getElementById('simConfEndDate').value || startDate;
-                    templates = TASK_TEMPLATES_CONF;
-                } else {
-                    name = document.getElementById('simPaperName').value;
-                    title = document.getElementById('simPaperTitle').value;
-                    format = document.getElementById('simPaperFormat').value;
-                    url = document.getElementById('simPaperUrl').value;
-                    location = document.getElementById('simPaperLocation').value || '指定なし';
-                    startDate = document.getElementById('simPaperStartDate').value;
-                    endDate = startDate; // 論文の場合は1日
-                    templates = TASK_TEMPLATES_PAPER;
-                }
+            const tasks = templates.map(t => {
+                const d = new Date(startDate);
+                d.setDate(d.getDate() + t.offsetDays);
+                return { id: 't_' + Math.random().toString(36).substr(2, 9), name: t.name, dueDate: d.toISOString().split('T')[0], completed: false };
+            });
 
-                if (!name || !startDate) return alert('名称と期日（開始日/目標日）を入力してください。');
+            const newProj = {
+                id: 'p_' + Math.random().toString(36).substr(2, 9),
+                projectType: type, name, presentationTitle: title, presentationFormat: format,
+                url, location, startDate, endDate, tasks, isExpanded: true
+            };
 
-                const baseDate = new Date(startDate);
-                const tasks = templates.map(t => {
-                    const d = new Date(baseDate);
-                    d.setDate(d.getDate() + t.offsetDays);
-                    return { id: 't_' + Math.random().toString(36).substr(2, 9), name: t.name, dueDate: d.toISOString().split('T')[0], completed: false };
-                });
+            window.projects.push(newProj);
+            window.render();
+            await saveProject(newProj);
+            window.toggleAddForm();
+        };
 
-                const newProj = {
-                    id: 'p_' + Math.random().toString(36).substr(2, 9),
-                    projectType: type,
-                    name, presentationTitle: title, presentationFormat: format,
-                    url, location, startDate, endDate, tasks, isExpanded: true
-                };
-
-                window.projects.push(newProj);
-                window.render();
-
-                // フォームリセット
-                document.querySelectorAll('#add-project-form input[type="text"], #add-project-form input[type="url"], #add-project-form input[type="date"]').forEach(el => el.value = '');
-                toggleAddForm();
-                await saveProject(newProj);
-            } catch(e) { showError("作成エラー: " + e.message); }
-        }
-
-        // --- タスク・プロジェクト操作関数群 ---
-        window.toggleTask = async function(pid, tid) {
+        window.toggleTask = async (pid, tid) => {
             const p = window.projects.find(x => x.id === pid);
             if(p){ const t = p.tasks.find(x => x.id === tid); if(t){ t.completed = !t.completed; t.completedAt = t.completed ? getJSTDateStr() : null; window.render(); await saveProject(p); } }
-        }
-        window.deleteTask = async function(pid, tid) {
+        };
+
+        window.updateTaskName = async (pid, tid, val) => {
             const p = window.projects.find(x => x.id === pid);
-            if(p){ p.tasks = p.tasks.filter(x => x.id !== tid); window.render(); await saveProject(p); }
-        }
-        window.updateDate = async function(pid, tid, val) {
+            if(p){ const t = p.tasks.find(x => x.id === tid); if(t && t.name !== val.trim()){ t.name = val.trim(); await saveProject(p); } }
+        };
+
+        window.updateDate = async (pid, tid, val) => {
             const p = window.projects.find(x => x.id === pid);
             if(p){ const t = p.tasks.find(x => x.id === tid); if(t){ t.dueDate = val; p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)); window.render(); await saveProject(p); } }
-        }
-        window.updateTaskName = async function(pid, tid, val) {
-            if(!val.trim()) return; const p = window.projects.find(x => x.id === pid);
-            if(p){ const t = p.tasks.find(x => x.id === tid); if(t && t.name !== val.trim()){ t.name = val.trim(); await saveProject(p); } }
-        }
-        window.addCustomTask = async function(pid) {
+        };
+
+        window.deleteTask = async (pid, tid) => {
+            const p = window.projects.find(x => x.id === pid);
+            if(p){ p.tasks = p.tasks.filter(x => x.id !== tid); window.render(); await saveProject(p); }
+        };
+
+        window.addCustomTask = async (pid) => {
             const n = document.getElementById(`cName_${pid}`), d = document.getElementById(`cDate_${pid}`);
             if(!n.value || !d.value) return alert('入力してください');
             const p = window.projects.find(x => x.id === pid);
             if(p){ p.tasks.push({id:'t_'+Math.random().toString(36).substr(2,9), name:n.value, dueDate:d.value, completed:false});
                    p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)); n.value=''; d.value=''; window.render(); await saveProject(p); }
-        }
-        window.deleteProject = async function(pid) { if(confirm("プロジェクトを削除しますか？")) await window.removeProject(pid); }
-        window.toggleProjectExpand = async function(pid) { const p = window.projects.find(x => x.id === pid); if(p){ p.isExpanded = !p.isExpanded; window.render(); await saveProject(p); } }
+        };
 
-        // --- プロジェクト編集機能 ---
+        window.toggleProjectExpand = async (pid) => { const p = window.projects.find(x => x.id === pid); if(p){ p.isExpanded = !p.isExpanded; window.render(); await saveProject(p); } };
         window.startEdit = (id) => { const p = window.projects.find(x => x.id === id); if(p){ p.isEditing = true; p.isExpanded = true; window.render(); }};
         window.cancelEdit = (id) => { const p = window.projects.find(x => x.id === id); if(p){ p.isEditing = false; window.render(); }};
         window.saveEdit = async (id) => {
@@ -435,190 +392,129 @@
                 const endEl = document.getElementById(`editEndDate_${id}`);
                 p.endDate = endEl ? endEl.value || p.startDate : p.startDate;
                 p.isEditing = false;
-                window.render();
-                await saveProject(p);
+                window.render(); await saveProject(p);
             }
         };
 
-        // --- 査読タスク追加機能 ---
+        window.deleteProject = async (pid) => { if(confirm("削除しますか？")){ const pIdx = window.projects.findIndex(x=>x.id===pid); if(pIdx>=0){ if(currentUser){ await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'projects', pid)); } else { window.projects.splice(pIdx,1); localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(window.projects)); window.render(); } } } };
+
         window.addReviewTasks = async function(pid) {
-            if(!confirm("査読対応（リビジョン）用のタスクセットを追加しますか？\n※本日から起算して期日が自動設定されます。")) return;
+            if(!confirm("査読対応タスクを追加しますか？")) return;
             const p = window.projects.find(x => x.id === pid);
             if(p){
-                const baseDate = new Date();
+                const now = new Date();
                 REVIEW_TASKS.forEach(tpl => {
-                    const d = new Date(baseDate); d.setDate(d.getDate() + tpl.offsetDays);
+                    const d = new Date(now); d.setDate(d.getDate() + tpl.offsetDays);
                     p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: tpl.name, dueDate: d.toISOString().split('T')[0], completed: false });
                 });
                 p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
-                p.isExpanded = true;
-                window.render();
-                await saveProject(p);
+                window.render(); await saveProject(p);
             }
-        }
+        };
 
-        window.switchTab = function(tabId) {
-            window.currentTab = tabId;
-            document.getElementById('tab-timeline').className = `flex-1 py-4 text-center ${tabId === 'timeline' ? 'tab-active' : 'tab-inactive'} hover:bg-slate-100 transition text-sm`;
-            document.getElementById('tab-project').className = `flex-1 py-4 text-center ${tabId === 'project' ? 'tab-active' : 'tab-inactive'} hover:bg-slate-100 transition text-sm`;
-            window.render();
-        }
+        window.switchTab = (id) => { window.currentTab = id; window.render(); };
 
-        // バッジ生成
-        window.getProjIcon = (type) => type === 'paper' ? '📄' : '🎓';
-        window.getFormatBadge = (format) => {
-            if(!format) return '';
-            const isPaperFormat = ['論文','実践報告','研究ノート','調査報告'].includes(format);
-            const color = isPaperFormat ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-blue-50 text-blue-700 border-blue-200';
-            return `<span class="inline-block px-1.5 py-0.5 rounded border text-[9px] font-bold ${color} ml-1">${format}</span>`;
-        }
-
-        window.render = function() {
+        window.render = () => {
+            const container = document.getElementById('content-area');
             const stats = document.getElementById('overview-stats');
+            document.getElementById('tab-timeline').className = `flex-1 py-4 text-center ${window.currentTab === 'timeline' ? 'tab-active' : 'tab-inactive'} hover:bg-slate-100 transition text-sm`;
+            document.getElementById('tab-project').className = `flex-1 py-4 text-center ${window.currentTab === 'project' ? 'tab-active' : 'tab-inactive'} hover:bg-slate-100 transition text-sm`;
+
             if (window.projects.length === 0) {
                 stats.classList.add('hidden');
-                document.getElementById('content-area').innerHTML = `<div class="text-center py-20"><div class="text-4xl mb-4">📭</div><h3 class="text-lg font-bold text-slate-600">予定がありません</h3></div>`;
+                container.innerHTML = `<div class="text-center py-20 text-slate-400 font-bold">予定がありません</div>`;
                 return;
             }
             stats.classList.remove('hidden');
             let t=0, d=0; window.projects.forEach(p => { t+=p.tasks.length; d+=p.tasks.filter(x=>x.completed).length; });
             stats.innerHTML = `進行中: <span class="text-indigo-600">${window.projects.length}</span> 件 | 達成率: <span class="text-indigo-600">${Math.round((d/t)*100)||0}%</span>`;
             
-            if (window.currentTab === 'project') window.renderProjectView(); else window.renderTimelineView();
-        }
+            if (window.currentTab === 'project') window.renderProjectView(container);
+            else window.renderTimelineView(container);
+        };
 
-        window.renderProjectView = function() {
-            const sorted = [...window.projects].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+        window.renderProjectView = (container) => {
+            const sorted = [...window.projects].sort((a,b) => new Date(a.startDate) - new Date(b.startDate));
             let html = '<div class="space-y-4">';
             sorted.forEach(proj => {
-                const done = proj.tasks.filter(t => t.completed).length;
-                const prog = Math.round((done / proj.tasks.length) * 100) || 0;
+                const done = proj.tasks.filter(x=>x.completed).length;
+                const prog = Math.round((done/proj.tasks.length)*100)||0;
                 const visibleTasks = proj.tasks.filter(t => !(t.completed && isOldTask(t.completedAt)));
-                const titleStr = proj.url ? `<a href="${proj.url}" target="_blank" class="hover:underline text-indigo-900">${proj.name}</a>` : proj.name;
-                const icon = window.getProjIcon(proj.projectType);
-                const subInfo = proj.projectType === 'paper' ? `目標投稿: ${proj.startDate} | メモ: ${proj.location}` : `日程: ${proj.startDate}〜${proj.endDate} | 開催地: ${proj.location}`;
-
+                const color = proj.projectType === 'paper' ? 'rose' : 'blue';
+                
                 html += `
-                <div class="bg-white border ${proj.projectType === 'paper' ? 'border-rose-300' : 'border-blue-300'} rounded-xl shadow-sm overflow-hidden">
+                <div class="bg-white border border-${color}-300 rounded-xl shadow-sm overflow-hidden">
                     ${proj.isEditing ? `
-                    <div class="p-4 bg-slate-50 border-b border-slate-200">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-3 text-xs">
-                            <div>${proj.projectType === 'paper' ? '投稿先' : '学会名'}: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>
-                            <div class="lg:col-span-2">${proj.projectType === 'paper' ? '論文タイトル' : '発表タイトル'}: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>
-                            
-                            <div>${proj.projectType === 'paper' ? '原稿種別' : '形式'}: 
-                                <select id="editFormat_${proj.id}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500">
-                                    ${proj.projectType === 'paper' 
-                                        ? `<option value="論文" ${proj.presentationFormat==='論文'?'selected':''}>論文</option>
-                                           <option value="実践報告" ${proj.presentationFormat==='実践報告'?'selected':''}>実践報告</option>
-                                           <option value="研究ノート" ${proj.presentationFormat==='研究ノート'?'selected':''}>研究ノート</option>
-                                           <option value="調査報告" ${proj.presentationFormat==='調査報告'?'selected':''}>調査報告</option>
-                                           <option value="その他" ${proj.presentationFormat==='その他'?'selected':''}>その他</option>`
-                                        : `<option value="" ${proj.presentationFormat===''?'selected':''}>未定</option>
-                                           <option value="口頭" ${proj.presentationFormat==='口頭'?'selected':''}>口頭</option>
-                                           <option value="ポスター" ${proj.presentationFormat==='ポスター'?'selected':''}>ポスター</option>
-                                           <option value="パネル" ${proj.presentationFormat==='パネル'?'selected':''}>パネル</option>
-                                           <option value="デモ" ${proj.presentationFormat==='デモ'?'selected':''}>デモ</option>
-                                           <option value="その他" ${proj.presentationFormat==='その他'?'selected':''}>その他</option>`
-                                    }
-                                </select>
-                            </div>
-                            
-                            <div>URL: <input type="url" id="editUrl_${proj.id}" value="${proj.url}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>
-                            <div>${proj.projectType === 'paper' ? '規定メモ' : '開催地'}: <input type="text" id="editLocation_${proj.id}" value="${proj.location}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>
-                            
-                            <div class="flex gap-2">
-                                <div>${proj.projectType === 'paper' ? '目標投稿日' : '開始日'}: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>
-                                ${proj.projectType === 'conference' ? `<div>終了日: <input type="date" id="editEndDate_${proj.id}" value="${proj.endDate}" class="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-indigo-500"></div>` : `<input type="hidden" id="editEndDate_${proj.id}" value="${proj.endDate}">`}
-                            </div>
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 text-xs">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                            <div>名称: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-1.5 border rounded"></div>
+                            <div class="md:col-span-2">タイトル: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle}" class="w-full p-1.5 border rounded"></div>
+                            <div>種別: <select id="editFormat_${proj.id}" class="w-full p-1.5 border rounded">${proj.projectType==='paper'?`<option value="論文" ${proj.presentationFormat==='論文'?'selected':''}>論文</option><option value="実践報告" ${proj.presentationFormat==='実践報告'?'selected':''}>実践報告</option><option value="研究ノート" ${proj.presentationFormat==='研究ノート'?'selected':''}>研究ノート</option><option value="調査報告" ${proj.presentationFormat==='調査報告'?'selected':''}>調査報告</option>`:`<option value="口頭" ${proj.presentationFormat==='口頭'?'selected':''}>口頭</option><option value="ポスター" ${proj.presentationFormat==='ポスター'?'selected':''}>ポスター</option><option value="パネル" ${proj.presentationFormat==='パネル'?'selected':''}>パネル</option>`}</select></div>
+                            <div>URL: <input type="text" id="editUrl_${proj.id}" value="${proj.url}" class="w-full p-1.5 border rounded"></div>
+                            <div>メモ/地: <input type="text" id="editLocation_${proj.id}" value="${proj.location}" class="w-full p-1.5 border rounded"></div>
+                            <div>日付: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" class="w-full p-1.5 border rounded"></div>
                         </div>
-                        <div class="flex justify-end gap-2">
-                            <button onclick="cancelEdit('${proj.id}')" class="px-3 py-1.5 bg-white border border-slate-300 font-bold text-slate-600 rounded hover:bg-slate-100 transition shadow-sm">キャンセル</button>
-                            <button onclick="saveEdit('${proj.id}')" class="px-4 py-1.5 bg-indigo-600 font-bold text-white rounded hover:bg-indigo-700 transition shadow-sm">保存</button>
-                        </div>
+                        <div class="flex justify-end gap-2"><button onclick="cancelEdit('${proj.id}')" class="px-3 py-1 bg-white border rounded">戻る</button><button onclick="saveEdit('${proj.id}')" class="px-3 py-1 bg-indigo-600 text-white rounded">保存</button></div>
                     </div>` : `
                     <div class="p-4 flex flex-col sm:flex-row justify-between items-center cursor-pointer hover:bg-slate-50" onclick="toggleProjectExpand('${proj.id}')">
                         <div class="flex items-center gap-3">
-                            <div class="text-xl">${proj.isExpanded ? '🔽' : '▶️'}</div>
+                            <span class="text-xl">${proj.isExpanded?'🔽':'▶️'}</span>
                             <div>
-                                <h3 class="text-base font-black">${icon} ${titleStr} ${window.getFormatBadge(proj.presentationFormat)}</h3>
-                                <div class="text-xs text-slate-500 mt-1">${subInfo} | ${proj.presentationTitle || 'タイトル未定'}</div>
+                                <h3 class="text-base font-black">${proj.projectType==='paper'?'📄':'🎓'} ${proj.name} <span class="px-1.5 py-0.5 rounded border text-[9px] bg-${color}-50 text-${color}-700 border-${color}-200">${proj.presentationFormat}</span></h3>
+                                <div class="text-[10px] text-slate-500 mt-0.5">${proj.startDate} | ${proj.presentationTitle || '未定'}</div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 mt-4 sm:mt-0">
-                            ${proj.projectType === 'paper' ? `<button onclick="event.stopPropagation(); addReviewTasks('${proj.id}')" class="text-xs bg-rose-100 text-rose-800 px-2 py-1 rounded font-bold hover:bg-rose-200 border border-rose-200 shadow-sm">＋ 査読対応追加</button>` : ''}
-                            <span class="text-xs font-bold">${done}/${proj.tasks.length} (${prog}%)</span>
-                            <button onclick="event.stopPropagation(); startEdit('${proj.id}')" title="プロジェクトを編集">✏️</button>
-                            <button onclick="event.stopPropagation(); deleteProject('${proj.id}')" title="プロジェクトを削除">🗑️</button>
+                        <div class="flex items-center gap-3 mt-3 sm:mt-0">
+                            ${proj.projectType==='paper'?`<button onclick="event.stopPropagation();addReviewTasks('${proj.id}')" class="text-[10px] bg-rose-100 text-rose-800 px-2 py-1 rounded font-bold">査読対応</button>`:''}
+                            <span class="text-[10px] font-bold">${prog}%</span>
+                            <button onclick="event.stopPropagation();startEdit('${proj.id}')">✏️</button>
+                            <button onclick="event.stopPropagation();deleteProject('${proj.id}')">🗑️</button>
                         </div>
                     </div>`}
-                    <div class="${proj.isExpanded && !proj.isEditing ? 'block' : 'hidden'} border-t border-slate-100 bg-white">
-                        <table class="w-full text-left text-sm">
-                            <tbody class="divide-y divide-slate-300 border-t border-slate-300">
+                    <div class="${proj.isExpanded && !proj.isEditing?'block':'hidden'} border-t border-slate-100">
+                        <table class="w-full text-sm">
+                            <tbody class="divide-y divide-slate-300">
                                 ${visibleTasks.map(t => {
                                     const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
-                                    
-                                    // ★ プロジェクト種別ごとの行の背景色設定
-                                    const bgClass = proj.projectType === 'paper'
-                                        ? (t.completed ? 'bg-rose-50/40 opacity-50' : 'bg-rose-50/30 hover:bg-rose-100/50')
-                                        : (t.completed ? 'bg-blue-50/40 opacity-50' : 'bg-blue-50/30 hover:bg-blue-100/50');
-
-                                    return `<tr class="${bgClass} transition-colors">
-                                        <td class="p-3 w-12 text-center"><input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask('${proj.id}', '${t.id}')"></td>
-                                        <td class="p-3"><input type="text" value="${t.name}" onchange="updateTaskName('${proj.id}', '${t.id}', this.value)" class="w-full bg-transparent outline-none ${t.completed ? 'line-through text-slate-400' : 'font-medium text-slate-800'}"></td>
-                                        <td class="p-3 w-36"><input type="date" value="${t.dueDate}" class="text-xs border rounded p-1 w-full ${isPast ? 'text-red-600 font-bold border-red-200 bg-white' : 'bg-white/50'}" onchange="updateDate('${proj.id}', '${t.id}', this.value)"></td>
-                                        <td class="p-3 w-20 text-right space-x-2">
-                                            <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, proj.name, proj.presentationTitle)}" target="_blank" title="Googleカレンダーに登録" class="hover:opacity-70">📅</a>
-                                            <button onclick="deleteTask('${proj.id}', '${t.id}')" title="タスクを削除" class="hover:opacity-70">🗑️</button>
+                                    const rowColor = proj.projectType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/20'):(t.completed?'bg-blue-50/40':'bg-blue-50/20');
+                                    return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
+                                        <td class="p-3 w-10 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${proj.id}','${t.id}')"></td>
+                                        <td class="p-3"><input type="text" value="${t.name}" onchange="updateTaskName('${proj.id}','${t.id}',this.value)" class="w-full bg-transparent hover:bg-white/80 focus:bg-white border border-transparent hover:border-slate-300 px-1 rounded outline-none transition ${t.completed?'line-through text-slate-400':''}"></td>
+                                        <td class="p-3 w-32"><input type="date" value="${t.dueDate}" onchange="updateDate('${proj.id}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
+                                        <td class="p-3 w-16 text-right space-x-2">
+                                            <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, proj.name, proj.presentationTitle)}" target="_blank">📅</a>
+                                            <button onclick="deleteTask('${proj.id}','${t.id}')">🗑️</button>
                                         </td>
                                     </tr>`}).join('')}
                             </tbody>
                         </table>
-                        <div class="p-3 bg-slate-50 flex gap-2 border-t border-slate-300"><input type="text" id="cName_${proj.id}" placeholder="追加タスク..." class="flex-1 text-xs border rounded p-1"><input type="date" id="cDate_${proj.id}" class="text-xs border rounded p-1"><button onclick="addCustomTask('${proj.id}')" class="text-xs bg-slate-800 text-white px-3 rounded">追加</button></div>
+                        <div class="p-2 bg-slate-50 flex gap-2 border-t border-slate-300"><input type="text" id="cName_${proj.id}" placeholder="新規タスク..." class="flex-1 text-xs border rounded px-2"><input type="date" id="cDate_${proj.id}" class="text-xs border rounded p-1"><button onclick="addCustomTask('${proj.id}')" class="text-xs bg-slate-700 text-white px-3 rounded">＋</button></div>
                     </div>
                 </div>`;
             });
-            html += '</div>';
-            document.getElementById('content-area').innerHTML = html;
-        }
+            container.innerHTML = html + '</div>';
+        };
 
-        window.renderTimelineView = function() {
+        window.renderTimelineView = (container) => {
             let all = []; 
-            window.projects.forEach(p => p.tasks.forEach(t => { if (!(t.completed && isOldTask(t.completedAt))) all.push({...t, pId: p.id, pName: p.name, pType: p.projectType, pFormat: p.presentationFormat, pUrl: p.url, pTitle: p.presentationTitle}); }));
-            all.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+            window.projects.forEach(p => p.tasks.forEach(t => { if (!(t.completed && isOldTask(t.completedAt))) all.push({...t, pId:p.id, pName:p.name, pType:p.projectType, pTitle:p.presentationTitle}); }));
+            all.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-            document.getElementById('content-area').innerHTML = `
-            <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
-                <table class="w-full text-sm">
-                    <thead class="bg-slate-900 text-white text-xs text-left">
-                        <tr><th class="p-3 w-12 text-center">完了</th><th class="p-3 w-32">期日 ▲</th><th class="p-3">予定 / タスク</th><th class="p-3 w-20 text-center">操作</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-300">
-                        ${all.map(t => {
-                            const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
-                            const titleStr = t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="hover:underline">${t.pName}</a>` : t.pName;
-                            
-                            // ★ タイムライン上での種別ごとの行の背景色設定
-                            const bgClass = t.pType === 'paper'
-                                ? (t.completed ? 'bg-rose-50/40 opacity-50' : 'bg-rose-50/40 hover:bg-rose-100/60')
-                                : (t.completed ? 'bg-blue-50/40 opacity-50' : 'bg-blue-50/40 hover:bg-blue-100/60');
-
-                            return `<tr class="${bgClass} transition-colors">
-                                <td class="p-3 text-center"><input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask('${t.pId}', '${t.id}')"></td>
-                                <td class="p-3"><input type="date" value="${t.dueDate}" class="text-xs border border-transparent hover:border-slate-400 rounded p-1 w-full bg-transparent outline-none focus:bg-white ${isPast ? 'text-red-600 font-bold' : ''}" onchange="updateDate('${t.pId}', '${t.id}', this.value)"></td>
-                                <td class="p-3">
-                                    <div class="text-[10px] opacity-70 font-bold flex items-center gap-1">${window.getProjIcon(t.pType)} ${titleStr} ${window.getFormatBadge(t.pFormat)}</div>
-                                    <input type="text" value="${t.name}" onchange="updateTaskName('${t.pId}', '${t.id}', this.value)" class="w-full mt-1 bg-transparent border border-transparent outline-none text-sm ${t.completed ? 'line-through text-slate-400' : 'font-medium text-slate-800'}">
-                                </td>
-                                <td class="p-3 text-center space-x-2">
-                                    <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName, t.pTitle)}" target="_blank" title="Googleカレンダーに登録" class="hover:opacity-70">📅</a>
-                                    <button onclick="deleteTask('${t.pId}', '${t.id}')" title="タスクを削除" class="hover:opacity-70">🗑️</button>
-                                </td>
-                            </tr>`}).join('')}
-                    </tbody>
-                </table>
-            </div>`;
-        }
+            container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden shadow-sm"><table class="w-full text-sm">
+                <thead class="bg-slate-900 text-white text-[10px] text-left uppercase"><tr><th class="p-3 w-10"></th><th class="p-3 w-28">期日 ▲</th><th class="p-3">内容</th><th class="p-3 w-16 text-center"></th></tr></thead>
+                <tbody class="divide-y divide-slate-300">${all.map(t => {
+                    const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
+                    const rowColor = t.pType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/30'):(t.completed?'bg-blue-50/40':'bg-blue-50/30');
+                    return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
+                        <td class="p-3 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.pId}','${t.id}')"></td>
+                        <td class="p-3"><input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
+                        <td class="p-3">
+                            <div class="text-[9px] font-bold opacity-60">${t.pType==='paper'?'📄':'🎓'} ${t.pName}</div>
+                            <input type="text" value="${t.name}" onchange="updateTaskName('${t.pId}','${t.id}',this.value)" class="w-full bg-transparent hover:bg-white/80 focus:bg-white border border-transparent hover:border-slate-300 px-1 rounded outline-none transition text-sm ${t.completed?'line-through text-slate-400':'font-medium'}">
+                        </td>
+                        <td class="p-3 text-center space-x-2"><a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName, t.pTitle)}" target="_blank">📅</a><button onclick="deleteTask('${t.pId}','${t.id}')">🗑️</button></td>
+                    </tr>`}).join('')}</tbody></table></div>`;
+        };
     </script>
 </body>
 </html>
