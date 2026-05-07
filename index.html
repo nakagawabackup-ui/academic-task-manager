@@ -15,6 +15,9 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .editing-input { background: white !important; border: 1px solid #cbd5e1 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+        /* フィルタボタン用スタイル */
+        .filter-btn-active { background-color: #0f172a; color: white; }
+        .filter-btn-inactive { background-color: #e2e8f0; color: #64748b; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -175,6 +178,8 @@
 
         window.projects = [];
         window.currentTab = 'timeline';
+        window.timelineFilter = 'all'; // ★ 新設: フィルタ状態 ('all', '1month', '2months')
+        
         const APP_ID = 'academic_manager_v1'; 
         const LOCAL_STORAGE_KEY = 'academic_projects_v1';
 
@@ -444,6 +449,12 @@
 
         window.switchTab = (id) => { window.currentTab = id; window.render(); };
 
+        // ★ 新設: フィルタ切り替え関数
+        window.setTimelineFilter = (filter) => {
+            window.timelineFilter = filter;
+            window.render();
+        };
+
         window.render = () => {
             const container = document.getElementById('content-area');
             const stats = document.getElementById('overview-stats');
@@ -544,10 +555,34 @@
 
         window.renderTimelineView = (container) => {
             let all = []; 
-            window.projects.forEach(p => p.tasks.forEach(t => { if (!(t.completed && isOldTask(t.completedAt))) all.push({...t, pId:p.id, pName:p.name, pType:p.projectType, pTitle:p.presentationTitle, pUrl:p.url}); }));
+            const now = new Date();
+            const oneMonthLater = new Date(); oneMonthLater.setMonth(now.getMonth() + 1);
+            const twoMonthsLater = new Date(); twoMonthsLater.setMonth(now.getMonth() + 2);
+
+            window.projects.forEach(p => p.tasks.forEach(t => { 
+                if (!(t.completed && isOldTask(t.completedAt))) {
+                    const dueDate = new Date(t.dueDate);
+                    let include = true;
+                    if (window.timelineFilter === '1month' && dueDate > oneMonthLater) include = false;
+                    if (window.timelineFilter === '2months' && dueDate > twoMonthsLater) include = false;
+                    
+                    if (include) {
+                        all.push({...t, pId:p.id, pName:p.name, pType:p.projectType, pTitle:p.presentationTitle, pUrl:p.url});
+                    }
+                }
+            }));
             all.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-            container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+            // ★ フィルタボタンUIを動的に生成
+            const filterUI = `
+                <div class="flex gap-2 mb-4">
+                    <button onclick="setTimelineFilter('all')" class="px-3 py-1.5 rounded-full text-[11px] font-bold transition ${window.timelineFilter === 'all' ? 'filter-btn-active' : 'filter-btn-inactive'}">すべて</button>
+                    <button onclick="setTimelineFilter('1month')" class="px-3 py-1.5 rounded-full text-[11px] font-bold transition ${window.timelineFilter === '1month' ? 'filter-btn-active' : 'filter-btn-inactive'}">1ヶ月以内</button>
+                    <button onclick="setTimelineFilter('2months')" class="px-3 py-1.5 rounded-full text-[11px] font-bold transition ${window.timelineFilter === '2months' ? 'filter-btn-active' : 'filter-btn-inactive'}">2ヶ月以内</button>
+                </div>
+            `;
+
+            container.innerHTML = filterUI + `<div class="bg-white border rounded-xl overflow-hidden shadow-sm">
                 <table class="w-full text-sm">
                     <thead class="bg-slate-900 text-white text-[10px] text-left uppercase">
                         <tr>
@@ -557,25 +592,30 @@
                             <th class="p-3 w-24 text-center"></th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-300">${all.map(t => {
-                        const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
-                        const rowColor = t.pType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/30'):(t.completed?'bg-blue-50/40':'bg-blue-50/30');
-                        return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
-                            <td class="p-3 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.pId}','${t.id}')"></td>
-                            <td class="p-3"><input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
-                            <td class="p-3">
-                                <div class="text-[9px] font-bold opacity-60">
-                                    ${t.pType==='paper'?'📄':'🎓'} ${t.pName}
-                                    ${t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="ml-1 text-indigo-500">🌐</a>` : ''}
-                                </div>
-                                <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent px-1 rounded outline-none transition text-sm ${t.completed?'line-through text-slate-400':'font-medium'}">
-                            </td>
-                            <td class="p-3 text-center space-x-2">
-                                <button onclick="toggleTaskEdit('${t.pId}','${t.id}',this)" class="edit-task-btn text-xs">✏️</button>
-                                <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName, t.pTitle)}" target="_blank">📅</a>
-                                <button onclick="deleteTask('${t.pId}','${t.id}')">🗑️</button>
-                            </td>
-                        </tr>`}).join('')}</tbody></table></div>`;
+                    <tbody class="divide-y divide-slate-300">
+                        ${all.length === 0 ? '<tr><td colspan="4" class="p-10 text-center text-slate-400 font-bold">該当するタスクはありません</td></tr>' : 
+                        all.map(t => {
+                            const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
+                            const rowColor = t.pType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/30'):(t.completed?'bg-blue-50/40':'bg-blue-50/30');
+                            return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
+                                <td class="p-3 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.pId}','${t.id}')"></td>
+                                <td class="p-3"><input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
+                                <td class="p-3">
+                                    <div class="text-[9px] font-bold opacity-60">
+                                        ${t.pType==='paper'?'📄':'🎓'} ${t.pName}
+                                        ${t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="ml-1 text-indigo-500">🌐</a>` : ''}
+                                    </div>
+                                    <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent px-1 rounded outline-none transition text-sm ${t.completed?'line-through text-slate-400':'font-medium'}">
+                                </td>
+                                <td class="p-3 text-center space-x-2">
+                                    <button onclick="toggleTaskEdit('${t.pId}','${t.id}',this)" class="edit-task-btn text-xs">✏️</button>
+                                    <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName, t.pTitle)}" target="_blank">📅</a>
+                                    <button onclick="deleteTask('${t.pId}','${t.id}')">🗑️</button>
+                                </td>
+                            </tr>`}).join('')}
+                    </tbody>
+                </table>
+            </div>`;
         };
     </script>
 </body>
