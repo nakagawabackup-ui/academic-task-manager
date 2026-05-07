@@ -507,17 +507,27 @@
                     </div>`}
                     <div class="${proj.isExpanded && !proj.isEditing?'block':'hidden'} border-t border-slate-100">
                         <table class="w-full text-sm">
+                            <thead class="bg-slate-100 text-[9px] uppercase text-slate-500 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2 w-10"></th>
+                                    <th class="p-2 w-28 text-left">期日</th>
+                                    <th class="p-2 text-left">タスク内容</th>
+                                    <th class="p-2 w-24 text-center"></th>
+                                </tr>
+                            </thead>
                             <tbody class="divide-y divide-slate-300">
                                 ${visibleTasks.map(t => {
                                     const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
                                     const rowColor = proj.projectType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/20'):(t.completed?'bg-blue-50/40':'bg-blue-50/20');
                                     return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
                                         <td class="p-3 w-10 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${proj.id}','${t.id}')"></td>
+                                        <td class="p-3 w-28">
+                                            <input type="date" value="${t.dueDate}" onchange="updateDate('${proj.id}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}">
+                                        </td>
                                         <td class="p-3">
                                             <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent px-1 rounded outline-none transition ${t.completed?'line-through text-slate-400':''}">
                                         </td>
-                                        <td class="p-3 w-32"><input type="date" value="${t.dueDate}" onchange="updateDate('${proj.id}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
-                                        <td class="p-3 w-24 text-right space-x-2">
+                                        <td class="p-3 w-24 text-center space-x-2">
                                             <button onclick="toggleTaskEdit('${proj.id}','${t.id}',this)" class="edit-task-btn text-xs">✏️</button>
                                             <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, proj.name, proj.presentationTitle)}" target="_blank">📅</a>
                                             <button onclick="deleteTask('${proj.id}','${t.id}')">🗑️</button>
@@ -537,27 +547,35 @@
             window.projects.forEach(p => p.tasks.forEach(t => { if (!(t.completed && isOldTask(t.completedAt))) all.push({...t, pId:p.id, pName:p.name, pType:p.projectType, pTitle:p.presentationTitle, pUrl:p.url}); }));
             all.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-            container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden shadow-sm"><table class="w-full text-sm">
-                <thead class="bg-slate-900 text-white text-[10px] text-left uppercase"><tr><th class="p-3 w-10"></th><th class="p-3 w-28">期日 ▲</th><th class="p-3">内容</th><th class="p-3 w-24 text-center"></th></tr></thead>
-                <tbody class="divide-y divide-slate-300">${all.map(t => {
-                    const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
-                    const rowColor = t.pType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/30'):(t.completed?'bg-blue-50/40':'bg-blue-50/30');
-                    return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
-                        <td class="p-3 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.pId}','${t.id}')"></td>
-                        <td class="p-3"><input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
-                        <td class="p-3">
-                            <div class="text-[9px] font-bold opacity-60">
-                                ${t.pType==='paper'?'📄':'🎓'} ${t.pName}
-                                ${t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="ml-1 text-indigo-500">🌐</a>` : ''}
-                            </div>
-                            <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent px-1 rounded outline-none transition text-sm ${t.completed?'line-through text-slate-400':'font-medium'}">
-                        </td>
-                        <td class="p-3 text-center space-x-2">
-                            <button onclick="toggleTaskEdit('${t.pId}','${t.id}',this)" class="edit-task-btn text-xs">✏️</button>
-                            <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName, t.pTitle)}" target="_blank">📅</a>
-                            <button onclick="deleteTask('${t.pId}','${t.id}')">🗑️</button>
-                        </td>
-                    </tr>`}).join('')}</tbody></table></div>`;
+            container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-900 text-white text-[10px] text-left uppercase">
+                        <tr>
+                            <th class="p-3 w-10"></th>
+                            <th class="p-3 w-28">期日 ▲</th>
+                            <th class="p-3">内容</th>
+                            <th class="p-3 w-24 text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-300">${all.map(t => {
+                        const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
+                        const rowColor = t.pType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/30'):(t.completed?'bg-blue-50/40':'bg-blue-50/30');
+                        return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
+                            <td class="p-3 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.pId}','${t.id}')"></td>
+                            <td class="p-3"><input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
+                            <td class="p-3">
+                                <div class="text-[9px] font-bold opacity-60">
+                                    ${t.pType==='paper'?'📄':'🎓'} ${t.pName}
+                                    ${t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="ml-1 text-indigo-500">🌐</a>` : ''}
+                                </div>
+                                <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent px-1 rounded outline-none transition text-sm ${t.completed?'line-through text-slate-400':'font-medium'}">
+                            </td>
+                            <td class="p-3 text-center space-x-2">
+                                <button onclick="toggleTaskEdit('${t.pId}','${t.id}',this)" class="edit-task-btn text-xs">✏️</button>
+                                <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName, t.pTitle)}" target="_blank">📅</a>
+                                <button onclick="deleteTask('${t.pId}','${t.id}')">🗑️</button>
+                            </td>
+                        </tr>`}).join('')}</tbody></table></div>`;
         };
     </script>
 </body>
