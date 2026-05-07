@@ -99,7 +99,8 @@
                     <div class="flex gap-2 lg:col-span-2">
                         <div class="w-1/2">
                             <label class="block text-xs font-bold text-slate-500 mb-1">開始日 <span class="text-red-500">*</span></label>
-                            <input type="date" id="simConfStartDate" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <!-- ★ 変更: onchangeでsyncEndDateを呼び出し -->
+                            <input type="date" id="simConfStartDate" onchange="syncEndDate()" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div class="w-1/2">
                             <label class="block text-xs font-bold text-slate-500 mb-1">終了日</label>
@@ -255,6 +256,32 @@
             const details = encodeURIComponent(`研究活動タスク管理ツールより。\n${title ? 'タイトル: ' + title : ''}`);
             return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${formatDate(d)}/${formatDate(d2)}&details=${details}`;
         }
+
+        // ★ 新規追加: 開始日が変更されたら終了日を連動させる
+        window.syncEndDate = function() {
+            const startInput = document.getElementById('simConfStartDate');
+            const endInput = document.getElementById('simConfEndDate');
+            if (startInput.value) {
+                // 終了日が未設定、または開始日より前になってしまう場合は上書きする
+                if (!endInput.value || new Date(endInput.value) < new Date(startInput.value)) {
+                    endInput.value = startInput.value;
+                }
+                // カレンダーを開いた時のデフォルト位置（min）を設定
+                endInput.min = startInput.value;
+            }
+        };
+
+        // ★ 新規追加: プロジェクト編集画面用の連動関数
+        window.syncEditEndDate = function(pid) {
+            const startInput = document.getElementById(`editStartDate_${pid}`);
+            const endInput = document.getElementById(`editEndDate_${pid}`);
+            if (startInput && endInput && startInput.value) {
+                if (!endInput.value || new Date(endInput.value) < new Date(startInput.value)) {
+                    endInput.value = startInput.value;
+                }
+                endInput.min = startInput.value;
+            }
+        };
 
         try {
             app = initializeApp(myFirebaseConfig);
@@ -510,7 +537,6 @@
                        <option value="共同（筆頭）" ${proj.presentationStatus==='共同（筆頭）'?'selected':''}>共同（筆頭）</option>
                        <option value="共同（筆頭でない）" ${proj.presentationStatus==='共同（筆頭でない）'?'selected':''}>共同（筆頭でない）</option>`;
 
-                // ★ 変更: ラベルを「種別」から「発表形式」に変更
                 const formatOptions = proj.projectType === 'paper'
                     ? `<option value="">未定 / 選択なし</option>
                        <option value="論文" ${proj.presentationFormat==='論文'?'selected':''}>論文</option>
@@ -526,6 +552,7 @@
                        <option value="交流ひろば" ${proj.presentationFormat==='交流ひろば'?'selected':''}>交流ひろば</option>
                        <option value="その他" ${proj.presentationFormat==='その他'?'selected':''}>その他</option>`;
 
+                // ★ 変更: 日付部分にonchange="syncEditEndDate('${proj.id}')"を追加し、idを明示
                 html += `
                 <div class="bg-white border border-${color}-300 rounded-xl shadow-sm overflow-hidden">
                     ${proj.isEditing ? `
@@ -537,7 +564,10 @@
                             <div>ステイタス: <select id="editStatus_${proj.id}" class="w-full p-1.5 border rounded">${statusOptions}</select></div>
                             <div>URL: <input type="text" id="editUrl_${proj.id}" value="${proj.url}" class="w-full p-1.5 border rounded"></div>
                             <div>メモ/地: <input type="text" id="editLocation_${proj.id}" value="${proj.location}" class="w-full p-1.5 border rounded"></div>
-                            <div>日付: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" class="w-full p-1.5 border rounded"></div>
+                            <div class="flex gap-2">
+                                <div class="w-1/2">開始日: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" onchange="syncEditEndDate('${proj.id}')" class="w-full p-1.5 border rounded"></div>
+                                <div class="w-1/2">終了日: <input type="date" id="editEndDate_${proj.id}" value="${proj.endDate || proj.startDate}" class="w-full p-1.5 border rounded"></div>
+                            </div>
                         </div>
                         <div class="flex justify-end gap-2"><button onclick="cancelEdit('${proj.id}')" class="px-3 py-1 bg-white border rounded">戻る</button><button onclick="saveEdit('${proj.id}')" class="px-3 py-1 bg-indigo-600 text-white rounded">保存</button></div>
                     </div>` : `
@@ -551,7 +581,7 @@
                                     <span class="px-1.5 py-0.5 rounded border text-[9px] bg-${color}-50 text-${color}-700 border-${color}-200 ml-1">${proj.presentationFormat}</span>
                                     ${proj.presentationStatus ? `<span class="px-1.5 py-0.5 rounded border text-[9px] bg-slate-100 text-slate-700 border-slate-300 ml-1">${proj.presentationStatus}</span>` : ''}
                                 </h3>
-                                <div class="text-[10px] text-slate-500 mt-0.5">${proj.startDate} | ${proj.presentationTitle || '未定'}</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">${proj.startDate} ${proj.endDate && proj.endDate !== proj.startDate ? '〜 ' + proj.endDate : ''} | ${proj.presentationTitle || '未定'}</div>
                             </div>
                         </div>
                         <div class="flex items-center gap-3 mt-3 sm:mt-0">
