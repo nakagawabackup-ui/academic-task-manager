@@ -161,8 +161,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // ★ ここを signInWithPopup から signInWithRedirect に変更しています ★
-        import { getAuth, signInWithRedirect, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // signInWithPopup に戻しています
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const myFirebaseConfig = {
@@ -242,8 +242,15 @@
             db = getFirestore(app);
             provider = new GoogleAuthProvider();
             
-            // ★ ボタンクリック時の処理を signInWithRedirect に変更 ★
-            document.getElementById('login-btn').onclick = () => { signInWithRedirect(auth, provider); };
+            // ★ 万が一弾かれた場合はアラートを出すように変更 ★
+            document.getElementById('login-btn').onclick = async () => { 
+                try {
+                    await signInWithPopup(auth, provider);
+                } catch (error) {
+                    alert("ログイン機能がブロックされました。\n理由: " + error.message);
+                }
+            };
+            
             document.getElementById('logout-btn').onclick = async () => { await signOut(auth); window.projects = []; window.render(); };
 
             onAuthStateChanged(auth, (user) => {
