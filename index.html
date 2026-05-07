@@ -161,10 +161,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // ★ ここを signInWithPopup から signInWithRedirect に変更しています ★
+        import { getAuth, signInWithRedirect, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration
         const myFirebaseConfig = {
             apiKey: "AIzaSyC7mMddmukCPXkPX7Z2MD5fTcCFmUXnKGw",
             authDomain: "gakkai-task-manager.firebaseapp.com",
@@ -179,7 +179,6 @@
         const APP_ID = 'academic_manager_v1'; 
         const LOCAL_STORAGE_KEY = 'academic_projects_v1';
 
-        // --- タスクテンプレート定義 ---
         const TASK_TEMPLATES_CONF = [
             { name: '入会手続き', offsetDays: -120 },
             { name: '年会費支払い', offsetDays: -120 },
@@ -242,6 +241,11 @@
             auth = getAuth(app);
             db = getFirestore(app);
             provider = new GoogleAuthProvider();
+            
+            // ★ ボタンクリック時の処理を signInWithRedirect に変更 ★
+            document.getElementById('login-btn').onclick = () => { signInWithRedirect(auth, provider); };
+            document.getElementById('logout-btn').onclick = async () => { await signOut(auth); window.projects = []; window.render(); };
+
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
                 if (user) {
