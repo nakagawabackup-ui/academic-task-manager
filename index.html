@@ -80,6 +80,15 @@
                         </select>
                     </div>
                     <div>
+                        <!-- ★ 追加: 学会ステイタス -->
+                        <label class="block text-xs font-bold text-slate-500 mb-1">ステイタス</label>
+                        <select id="simConfStatus" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500">
+                            <option value="単独">単独</option>
+                            <option value="共同（筆頭）">共同（筆頭）</option>
+                            <option value="共同（筆頭でない）">共同（筆頭でない）</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1">公式サイトURL</label>
                         <input type="url" id="simConfUrl" placeholder="https://..." class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
@@ -118,7 +127,16 @@
                             <option value="その他">その他</option>
                         </select>
                     </div>
-                    <div class="lg:col-span-1">
+                    <div>
+                        <!-- ★ 追加: 論文ステイタス -->
+                        <label class="block text-xs font-bold text-slate-500 mb-1">ステイタス</label>
+                        <select id="simPaperStatus" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500">
+                            <option value="単著">単著</option>
+                            <option value="共著（筆頭）">共著（筆頭）</option>
+                            <option value="共著（筆頭でない）">共著（筆頭でない）</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1">投稿規定・ガイドラインURL</label>
                         <input type="url" id="simPaperUrl" placeholder="https://..." class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
                     </div>
@@ -207,7 +225,6 @@
             { name: '論文投稿完了（システム登録または郵送）', offsetDays: 0 }
         ];
 
-        // ★ 変更箇所：査読対応（リビジョン）タスクの内容を修正
         const REVIEW_TASKS = [
             { name: '査読コメント整理・対応方針の検討', offsetDays: 7 },
             { name: '追加のデータ分析・文献確認', offsetDays: 21 },
@@ -321,12 +338,13 @@
 
         window.importProject = async () => {
             const type = document.querySelector('input[name="projType"]:checked').value;
-            let name, title, format, url, location, startDate, endDate, templates;
+            let name, title, format, status, url, location, startDate, endDate, templates;
 
             if (type === 'conference') {
                 name = document.getElementById('simConfName').value;
                 title = document.getElementById('simConfTitle').value;
                 format = document.getElementById('simConfFormat').value;
+                status = document.getElementById('simConfStatus').value; // ★ 追加
                 url = document.getElementById('simConfUrl').value;
                 location = document.getElementById('simConfLocation').value || '未設定';
                 startDate = document.getElementById('simConfStartDate').value;
@@ -336,6 +354,7 @@
                 name = document.getElementById('simPaperName').value;
                 title = document.getElementById('simPaperTitle').value;
                 format = document.getElementById('simPaperFormat').value;
+                status = document.getElementById('simPaperStatus').value; // ★ 追加
                 url = document.getElementById('simPaperUrl').value;
                 location = document.getElementById('simPaperLocation').value || '指定なし';
                 startDate = document.getElementById('simPaperStartDate').value;
@@ -354,6 +373,7 @@
             const newProj = {
                 id: 'p_' + Math.random().toString(36).substr(2, 9),
                 projectType: type, name, presentationTitle: title, presentationFormat: format,
+                presentationStatus: status, // ★ 追加
                 url, location, startDate, endDate, tasks, isExpanded: true
             };
 
@@ -421,6 +441,7 @@
                 p.name = document.getElementById(`editName_${id}`).value;
                 p.presentationTitle = document.getElementById(`editTitle_${id}`).value;
                 p.presentationFormat = document.getElementById(`editFormat_${id}`).value;
+                p.presentationStatus = document.getElementById(`editStatus_${id}`).value; // ★ 追加
                 p.url = document.getElementById(`editUrl_${id}`).value;
                 p.location = document.getElementById(`editLocation_${id}`).value;
                 p.startDate = document.getElementById(`editStartDate_${id}`).value;
@@ -482,6 +503,15 @@
                 const visibleTasks = proj.tasks.filter(t => !(t.completed && isOldTask(t.completedAt)));
                 const color = proj.projectType === 'paper' ? 'rose' : 'blue';
                 
+                // 編集用のステイタス選択肢を生成
+                const statusOptions = proj.projectType === 'paper' 
+                    ? `<option value="単著" ${proj.presentationStatus==='単著'?'selected':''}>単著</option>
+                       <option value="共著（筆頭）" ${proj.presentationStatus==='共著（筆頭）'?'selected':''}>共著（筆頭）</option>
+                       <option value="共著（筆頭でない）" ${proj.presentationStatus==='共著（筆頭でない）'?'selected':''}>共著（筆頭でない）</option>`
+                    : `<option value="単独" ${proj.presentationStatus==='単独'?'selected':''}>単独</option>
+                       <option value="共同（筆頭）" ${proj.presentationStatus==='共同（筆頭）'?'selected':''}>共同（筆頭）</option>
+                       <option value="共同（筆頭でない）" ${proj.presentationStatus==='共同（筆頭でない）'?'selected':''}>共同（筆頭でない）</option>`;
+
                 html += `
                 <div class="bg-white border border-${color}-300 rounded-xl shadow-sm overflow-hidden">
                     ${proj.isEditing ? `
@@ -490,6 +520,7 @@
                             <div>名称: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-1.5 border rounded"></div>
                             <div class="md:col-span-2">タイトル: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle}" class="w-full p-1.5 border rounded"></div>
                             <div>種別: <select id="editFormat_${proj.id}" class="w-full p-1.5 border rounded">${proj.projectType==='paper'?`<option value="論文" ${proj.presentationFormat==='論文'?'selected':''}>論文</option><option value="実践報告" ${proj.presentationFormat==='実践報告'?'selected':''}>実践報告</option><option value="研究ノート" ${proj.presentationFormat==='研究ノート'?'selected':''}>研究ノート</option><option value="調査報告" ${proj.presentationFormat==='調査報告'?'selected':''}>調査報告</option>`:`<option value="口頭" ${proj.presentationFormat==='口頭'?'selected':''}>口頭</option><option value="ポスター" ${proj.presentationFormat==='ポスター'?'selected':''}>ポスター</option><option value="パネル" ${proj.presentationFormat==='パネル'?'selected':''}>パネル</option>`}</select></div>
+                            <div>ステイタス: <select id="editStatus_${proj.id}" class="w-full p-1.5 border rounded">${statusOptions}</select></div>
                             <div>URL: <input type="text" id="editUrl_${proj.id}" value="${proj.url}" class="w-full p-1.5 border rounded"></div>
                             <div>メモ/地: <input type="text" id="editLocation_${proj.id}" value="${proj.location}" class="w-full p-1.5 border rounded"></div>
                             <div>日付: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" class="w-full p-1.5 border rounded"></div>
@@ -504,6 +535,7 @@
                                     ${proj.projectType==='paper'?'📄':'🎓'} ${proj.name} 
                                     ${proj.url ? `<a href="${proj.url}" target="_blank" onclick="event.stopPropagation();" class="ml-2 text-indigo-500 hover:text-indigo-700">🌐</a>` : ''}
                                     <span class="px-1.5 py-0.5 rounded border text-[9px] bg-${color}-50 text-${color}-700 border-${color}-200 ml-1">${proj.presentationFormat}</span>
+                                    ${proj.presentationStatus ? `<span class="px-1.5 py-0.5 rounded border text-[9px] bg-slate-100 text-slate-700 border-slate-300 ml-1">${proj.presentationStatus}</span>` : ''}
                                 </h3>
                                 <div class="text-[10px] text-slate-500 mt-0.5">${proj.startDate} | ${proj.presentationTitle || '未定'}</div>
                             </div>
@@ -566,7 +598,7 @@
                     if (window.timelineFilter === '2months' && dueDate > twoMonthsLater) include = false;
                     
                     if (include) {
-                        all.push({...t, pId:p.id, pName:p.name, pType:p.projectType, pTitle:p.presentationTitle, pUrl:p.url});
+                        all.push({...t, pId:p.id, pName:p.name, pType:p.projectType, pTitle:p.presentationTitle, pUrl:p.url, pStatus:p.presentationStatus});
                     }
                 }
             }));
@@ -599,9 +631,10 @@
                                 <td class="p-3 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.pId}','${t.id}')"></td>
                                 <td class="p-3"><input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
                                 <td class="p-3">
-                                    <div class="text-[9px] font-bold opacity-60">
-                                        ${t.pType==='paper'?'📄':'🎓'} ${t.pName}
-                                        ${t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="ml-1 text-indigo-500">🌐</a>` : ''}
+                                    <div class="text-[9px] font-bold opacity-60 flex items-center flex-wrap gap-1 mb-0.5">
+                                        <span>${t.pType==='paper'?'📄':'🎓'} ${t.pName}</span>
+                                        ${t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="text-indigo-500">🌐</a>` : ''}
+                                        ${t.pStatus ? `<span class="px-1 py-0.5 rounded border bg-slate-100 text-slate-500 border-slate-200">${t.pStatus}</span>` : ''}
                                     </div>
                                     <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent px-1 rounded outline-none transition text-sm ${t.completed?'line-through text-slate-400':'font-medium'}">
                                 </td>
