@@ -75,12 +75,12 @@
                             <option value="口頭">口頭発表</option>
                             <option value="ポスター">ポスター発表</option>
                             <option value="パネル">パネルセッション</option>
-                            <option value="デモ">デモンストレーション</option>
+                            <option value="デモ">デモ</option>
+                            <option value="交流ひろば">交流ひろば</option>
                             <option value="その他">その他</option>
                         </select>
                     </div>
                     <div>
-                        <!-- ★ 追加: 学会ステイタス -->
                         <label class="block text-xs font-bold text-slate-500 mb-1">ステイタス</label>
                         <select id="simConfStatus" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500">
                             <option value="単独">単独</option>
@@ -128,7 +128,6 @@
                         </select>
                     </div>
                     <div>
-                        <!-- ★ 追加: 論文ステイタス -->
                         <label class="block text-xs font-bold text-slate-500 mb-1">ステイタス</label>
                         <select id="simPaperStatus" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500">
                             <option value="単著">単著</option>
@@ -344,7 +343,7 @@
                 name = document.getElementById('simConfName').value;
                 title = document.getElementById('simConfTitle').value;
                 format = document.getElementById('simConfFormat').value;
-                status = document.getElementById('simConfStatus').value; // ★ 追加
+                status = document.getElementById('simConfStatus').value;
                 url = document.getElementById('simConfUrl').value;
                 location = document.getElementById('simConfLocation').value || '未設定';
                 startDate = document.getElementById('simConfStartDate').value;
@@ -354,7 +353,7 @@
                 name = document.getElementById('simPaperName').value;
                 title = document.getElementById('simPaperTitle').value;
                 format = document.getElementById('simPaperFormat').value;
-                status = document.getElementById('simPaperStatus').value; // ★ 追加
+                status = document.getElementById('simPaperStatus').value;
                 url = document.getElementById('simPaperUrl').value;
                 location = document.getElementById('simPaperLocation').value || '指定なし';
                 startDate = document.getElementById('simPaperStartDate').value;
@@ -373,7 +372,7 @@
             const newProj = {
                 id: 'p_' + Math.random().toString(36).substr(2, 9),
                 projectType: type, name, presentationTitle: title, presentationFormat: format,
-                presentationStatus: status, // ★ 追加
+                presentationStatus: status,
                 url, location, startDate, endDate, tasks, isExpanded: true
             };
 
@@ -441,7 +440,7 @@
                 p.name = document.getElementById(`editName_${id}`).value;
                 p.presentationTitle = document.getElementById(`editTitle_${id}`).value;
                 p.presentationFormat = document.getElementById(`editFormat_${id}`).value;
-                p.presentationStatus = document.getElementById(`editStatus_${id}`).value; // ★ 追加
+                p.presentationStatus = document.getElementById(`editStatus_${id}`).value;
                 p.url = document.getElementById(`editUrl_${id}`).value;
                 p.location = document.getElementById(`editLocation_${id}`).value;
                 p.startDate = document.getElementById(`editStartDate_${id}`).value;
@@ -503,7 +502,6 @@
                 const visibleTasks = proj.tasks.filter(t => !(t.completed && isOldTask(t.completedAt)));
                 const color = proj.projectType === 'paper' ? 'rose' : 'blue';
                 
-                // 編集用のステイタス選択肢を生成
                 const statusOptions = proj.projectType === 'paper' 
                     ? `<option value="単著" ${proj.presentationStatus==='単著'?'selected':''}>単著</option>
                        <option value="共著（筆頭）" ${proj.presentationStatus==='共著（筆頭）'?'selected':''}>共著（筆頭）</option>
@@ -512,6 +510,22 @@
                        <option value="共同（筆頭）" ${proj.presentationStatus==='共同（筆頭）'?'selected':''}>共同（筆頭）</option>
                        <option value="共同（筆頭でない）" ${proj.presentationStatus==='共同（筆頭でない）'?'selected':''}>共同（筆頭でない）</option>`;
 
+                // ★ 修正: 編集画面の「発表形式」の選択肢を新規作成時と完全に一致させる
+                const formatOptions = proj.projectType === 'paper'
+                    ? `<option value="">未定 / 選択なし</option>
+                       <option value="論文" ${proj.presentationFormat==='論文'?'selected':''}>論文</option>
+                       <option value="実践報告" ${proj.presentationFormat==='実践報告'?'selected':''}>実践報告</option>
+                       <option value="研究ノート" ${proj.presentationFormat==='研究ノート'?'selected':''}>研究ノート</option>
+                       <option value="調査報告" ${proj.presentationFormat==='調査報告'?'selected':''}>調査報告</option>
+                       <option value="その他" ${proj.presentationFormat==='その他'?'selected':''}>その他</option>`
+                    : `<option value="">未定 / 選択なし</option>
+                       <option value="口頭発表" ${proj.presentationFormat==='口頭発表'?'selected':''}>口頭発表</option>
+                       <option value="ポスター発表" ${proj.presentationFormat==='ポスター発表'?'selected':''}>ポスター発表</option>
+                       <option value="パネルセッション" ${proj.presentationFormat==='パネルセッション'?'selected':''}>パネルセッション</option>
+                       <option value="デモ" ${proj.presentationFormat==='デモ'?'selected':''}>デモ</option>
+                       <option value="交流ひろば" ${proj.presentationFormat==='交流ひろば'?'selected':''}>交流ひろば</option>
+                       <option value="その他" ${proj.presentationFormat==='その他'?'selected':''}>その他</option>`;
+
                 html += `
                 <div class="bg-white border border-${color}-300 rounded-xl shadow-sm overflow-hidden">
                     ${proj.isEditing ? `
@@ -519,7 +533,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                             <div>名称: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-1.5 border rounded"></div>
                             <div class="md:col-span-2">タイトル: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle}" class="w-full p-1.5 border rounded"></div>
-                            <div>種別: <select id="editFormat_${proj.id}" class="w-full p-1.5 border rounded">${proj.projectType==='paper'?`<option value="論文" ${proj.presentationFormat==='論文'?'selected':''}>論文</option><option value="実践報告" ${proj.presentationFormat==='実践報告'?'selected':''}>実践報告</option><option value="研究ノート" ${proj.presentationFormat==='研究ノート'?'selected':''}>研究ノート</option><option value="調査報告" ${proj.presentationFormat==='調査報告'?'selected':''}>調査報告</option>`:`<option value="口頭" ${proj.presentationFormat==='口頭'?'selected':''}>口頭</option><option value="ポスター" ${proj.presentationFormat==='ポスター'?'selected':''}>ポスター</option><option value="パネル" ${proj.presentationFormat==='パネル'?'selected':''}>パネル</option>`}</select></div>
+                            <div>種別: <select id="editFormat_${proj.id}" class="w-full p-1.5 border rounded">${formatOptions}</select></div>
                             <div>ステイタス: <select id="editStatus_${proj.id}" class="w-full p-1.5 border rounded">${statusOptions}</select></div>
                             <div>URL: <input type="text" id="editUrl_${proj.id}" value="${proj.url}" class="w-full p-1.5 border rounded"></div>
                             <div>メモ/地: <input type="text" id="editLocation_${proj.id}" value="${proj.location}" class="w-full p-1.5 border rounded"></div>
