@@ -72,9 +72,9 @@
                         <label class="block text-xs font-bold text-slate-500 mb-1">発表形式</label>
                         <select id="simConfFormat" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500">
                             <option value="">未定 / 選択なし</option>
-                            <option value="口頭">口頭発表</option>
-                            <option value="ポスター">ポスター発表</option>
-                            <option value="パネル">パネルセッション</option>
+                            <option value="口頭発表">口頭発表</option>
+                            <option value="ポスター発表">ポスター発表</option>
+                            <option value="パネルセッション">パネルセッション</option>
                             <option value="デモ">デモ</option>
                             <option value="交流ひろば">交流ひろば</option>
                             <option value="その他">その他</option>
@@ -510,7 +510,7 @@
                        <option value="共同（筆頭）" ${proj.presentationStatus==='共同（筆頭）'?'selected':''}>共同（筆頭）</option>
                        <option value="共同（筆頭でない）" ${proj.presentationStatus==='共同（筆頭でない）'?'selected':''}>共同（筆頭でない）</option>`;
 
-                // ★ 修正: 編集画面の「発表形式」の選択肢を新規作成時と完全に一致させる
+                // ★ 変更: ラベルを「種別」から「発表形式」に変更
                 const formatOptions = proj.projectType === 'paper'
                     ? `<option value="">未定 / 選択なし</option>
                        <option value="論文" ${proj.presentationFormat==='論文'?'selected':''}>論文</option>
@@ -533,7 +533,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                             <div>名称: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-1.5 border rounded"></div>
                             <div class="md:col-span-2">タイトル: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle}" class="w-full p-1.5 border rounded"></div>
-                            <div>種別: <select id="editFormat_${proj.id}" class="w-full p-1.5 border rounded">${formatOptions}</select></div>
+                            <div>発表形式: <select id="editFormat_${proj.id}" class="w-full p-1.5 border rounded">${formatOptions}</select></div>
                             <div>ステイタス: <select id="editStatus_${proj.id}" class="w-full p-1.5 border rounded">${statusOptions}</select></div>
                             <div>URL: <input type="text" id="editUrl_${proj.id}" value="${proj.url}" class="w-full p-1.5 border rounded"></div>
                             <div>メモ/地: <input type="text" id="editLocation_${proj.id}" value="${proj.location}" class="w-full p-1.5 border rounded"></div>
