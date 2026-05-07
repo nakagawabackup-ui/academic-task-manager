@@ -15,7 +15,6 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .editing-input { background: white !important; border: 1px solid #cbd5e1 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
-        /* フィルタボタン用スタイル */
         .filter-btn-active { background-color: #0f172a; color: white; }
         .filter-btn-inactive { background-color: #e2e8f0; color: #64748b; }
     </style>
@@ -178,7 +177,7 @@
 
         window.projects = [];
         window.currentTab = 'timeline';
-        window.timelineFilter = 'all'; // ★ 新設: フィルタ状態 ('all', '1month', '2months')
+        window.timelineFilter = 'all'; 
         
         const APP_ID = 'academic_manager_v1'; 
         const LOCAL_STORAGE_KEY = 'academic_projects_v1';
@@ -208,11 +207,12 @@
             { name: '論文投稿完了（システム登録または郵送）', offsetDays: 0 }
         ];
 
+        // ★ 変更箇所：査読対応（リビジョン）タスクの内容を修正
         const REVIEW_TASKS = [
             { name: '査読コメント整理・対応方針の検討', offsetDays: 7 },
             { name: '追加のデータ分析・文献確認', offsetDays: 21 },
-            { name: '修正稿の作成（変更箇所の明記）', offsetDays: 35 },
-            { name: '査読者への回答書（レスポンスレター）の作成', offsetDays: 40 },
+            { name: '修正第二稿の作成', offsetDays: 35 },
+            { name: '修正箇所明記書の作成', offsetDays: 40 },
             { name: '修正原稿の再提出（Resubmission）', offsetDays: 45 }
         ];
 
@@ -449,7 +449,6 @@
 
         window.switchTab = (id) => { window.currentTab = id; window.render(); };
 
-        // ★ 新設: フィルタ切り替え関数
         window.setTimelineFilter = (filter) => {
             window.timelineFilter = filter;
             window.render();
@@ -573,7 +572,6 @@
             }));
             all.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-            // ★ フィルタボタンUIを動的に生成
             const filterUI = `
                 <div class="flex gap-2 mb-4">
                     <button onclick="setTimelineFilter('all')" class="px-3 py-1.5 rounded-full text-[11px] font-bold transition ${window.timelineFilter === 'all' ? 'filter-btn-active' : 'filter-btn-inactive'}">すべて</button>
