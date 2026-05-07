@@ -14,6 +14,8 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        /* 編集モード用のスタイル */
+        .editing-input { background: white !important; border: 1px solid #cbd5e1 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -153,7 +155,7 @@
             </div>
         </div>
         <div class="mt-4 text-center text-slate-400 text-[10px]">
-            ※タスク名の部分をクリックすると内容を直接編集できます。<br>
+            ※各タスクの ✏️ ボタンを押すと内容を編集できます。保存は ✅ ボタンを押してください。<br>
             ※右端にある 📅 ボタンでGoogleカレンダーに登録できます。<br>
             ※完了したタスクは翌日になると自動的に非表示になります。
         </div>
@@ -161,7 +163,6 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // signInWithPopup に戻しています
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -242,7 +243,6 @@
             db = getFirestore(app);
             provider = new GoogleAuthProvider();
             
-            // ★ 万が一弾かれた場合はアラートを出すように変更 ★
             document.getElementById('login-btn').onclick = async () => { 
                 try {
                     await signInWithPopup(auth, provider);
@@ -365,9 +365,33 @@
             if(p){ const t = p.tasks.find(x => x.id === tid); if(t){ t.completed = !t.completed; t.completedAt = t.completed ? getJSTDateStr() : null; window.render(); await saveProject(p); } }
         };
 
-        window.updateTaskName = async (pid, tid, val) => {
-            const p = window.projects.find(x => x.id === pid);
-            if(p){ const t = p.tasks.find(x => x.id === tid); if(t && t.name !== val.trim()){ t.name = val.trim(); await saveProject(p); } }
+        // ★ 新設: 編集モード切替関数
+        window.toggleTaskEdit = async (pid, tid, btn) => {
+            const row = btn.closest('tr');
+            const input = row.querySelector('.task-name-input');
+            const isEditing = input.hasAttribute('readonly');
+
+            if (isEditing) {
+                // 編集開始
+                input.removeAttribute('readonly');
+                input.classList.add('editing-input');
+                input.focus();
+                btn.innerHTML = '✅';
+            } else {
+                // 保存実行
+                const val = input.value.trim();
+                const p = window.projects.find(x => x.id === pid);
+                if(p){ 
+                    const t = p.tasks.find(x => x.id === tid); 
+                    if(t && t.name !== val){ 
+                        t.name = val; 
+                        await saveProject(p); 
+                    } 
+                }
+                input.setAttribute('readonly', true);
+                input.classList.remove('editing-input');
+                btn.innerHTML = '✏️';
+            }
         };
 
         window.updateDate = async (pid, tid, val) => {
@@ -385,7 +409,7 @@
             if(!n.value || !d.value) return alert('入力してください');
             const p = window.projects.find(x => x.id === pid);
             if(p){ p.tasks.push({id:'t_'+Math.random().toString(36).substr(2,9), name:n.value, dueDate:d.value, completed:false});
-                   p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)); n.value=''; d.value=''; window.render(); await saveProject(p); }
+                    p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)); n.value=''; d.value=''; window.render(); await saveProject(p); }
         };
 
         window.toggleProjectExpand = async (pid) => { const p = window.projects.find(x => x.id === pid); if(p){ p.isExpanded = !p.isExpanded; window.render(); await saveProject(p); } };
@@ -490,9 +514,12 @@
                                     const rowColor = proj.projectType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/20'):(t.completed?'bg-blue-50/40':'bg-blue-50/20');
                                     return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
                                         <td class="p-3 w-10 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${proj.id}','${t.id}')"></td>
-                                        <td class="p-3"><input type="text" value="${t.name}" onchange="updateTaskName('${proj.id}','${t.id}',this.value)" class="w-full bg-transparent hover:bg-white/80 focus:bg-white border border-transparent hover:border-slate-300 px-1 rounded outline-none transition ${t.completed?'line-through text-slate-400':''}"></td>
+                                        <td class="p-3">
+                                            <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent px-1 rounded outline-none transition ${t.completed?'line-through text-slate-400':''}">
+                                        </td>
                                         <td class="p-3 w-32"><input type="date" value="${t.dueDate}" onchange="updateDate('${proj.id}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
-                                        <td class="p-3 w-16 text-right space-x-2">
+                                        <td class="p-3 w-24 text-right space-x-2">
+                                            <button onclick="toggleTaskEdit('${proj.id}','${t.id}',this)" class="edit-task-btn text-xs">✏️</button>
                                             <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, proj.name, proj.presentationTitle)}" target="_blank">📅</a>
                                             <button onclick="deleteTask('${proj.id}','${t.id}')">🗑️</button>
                                         </td>
@@ -512,7 +539,7 @@
             all.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
 
             container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden shadow-sm"><table class="w-full text-sm">
-                <thead class="bg-slate-900 text-white text-[10px] text-left uppercase"><tr><th class="p-3 w-10"></th><th class="p-3 w-28">期日 ▲</th><th class="p-3">内容</th><th class="p-3 w-16 text-center"></th></tr></thead>
+                <thead class="bg-slate-900 text-white text-[10px] text-left uppercase"><tr><th class="p-3 w-10"></th><th class="p-3 w-28">期日 ▲</th><th class="p-3">内容</th><th class="p-3 w-24 text-center"></th></tr></thead>
                 <tbody class="divide-y divide-slate-300">${all.map(t => {
                     const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
                     const rowColor = t.pType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/30'):(t.completed?'bg-blue-50/40':'bg-blue-50/30');
@@ -521,9 +548,13 @@
                         <td class="p-3"><input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
                         <td class="p-3">
                             <div class="text-[9px] font-bold opacity-60">${t.pType==='paper'?'📄':'🎓'} ${t.pName}</div>
-                            <input type="text" value="${t.name}" onchange="updateTaskName('${t.pId}','${t.id}',this.value)" class="w-full bg-transparent hover:bg-white/80 focus:bg-white border border-transparent hover:border-slate-300 px-1 rounded outline-none transition text-sm ${t.completed?'line-through text-slate-400':'font-medium'}">
+                            <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent px-1 rounded outline-none transition text-sm ${t.completed?'line-through text-slate-400':'font-medium'}">
                         </td>
-                        <td class="p-3 text-center space-x-2"><a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName, t.pTitle)}" target="_blank">📅</a><button onclick="deleteTask('${t.pId}','${t.id}')">🗑️</button></td>
+                        <td class="p-3 text-center space-x-2">
+                            <button onclick="toggleTaskEdit('${t.pId}','${t.id}',this)" class="edit-task-btn text-xs">✏️</button>
+                            <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName, t.pTitle)}" target="_blank">📅</a>
+                            <button onclick="deleteTask('${t.pId}','${t.id}')">🗑️</button>
+                        </td>
                     </tr>`}).join('')}</tbody></table></div>`;
         };
     </script>
