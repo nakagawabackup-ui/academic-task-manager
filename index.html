@@ -99,7 +99,6 @@
                     <div class="flex gap-2 lg:col-span-2">
                         <div class="w-1/2">
                             <label class="block text-xs font-bold text-slate-500 mb-1">開始日 <span class="text-red-500">*</span></label>
-                            <!-- ★ 変更: onchangeでsyncEndDateを呼び出し -->
                             <input type="date" id="simConfStartDate" onchange="syncEndDate()" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div class="w-1/2">
@@ -257,21 +256,17 @@
             return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${formatDate(d)}/${formatDate(d2)}&details=${details}`;
         }
 
-        // ★ 新規追加: 開始日が変更されたら終了日を連動させる
         window.syncEndDate = function() {
             const startInput = document.getElementById('simConfStartDate');
             const endInput = document.getElementById('simConfEndDate');
             if (startInput.value) {
-                // 終了日が未設定、または開始日より前になってしまう場合は上書きする
                 if (!endInput.value || new Date(endInput.value) < new Date(startInput.value)) {
                     endInput.value = startInput.value;
                 }
-                // カレンダーを開いた時のデフォルト位置（min）を設定
                 endInput.min = startInput.value;
             }
         };
 
-        // ★ 新規追加: プロジェクト編集画面用の連動関数
         window.syncEditEndDate = function(pid) {
             const startInput = document.getElementById(`editStartDate_${pid}`);
             const endInput = document.getElementById(`editEndDate_${pid}`);
@@ -407,6 +402,34 @@
             window.render();
             await saveProject(newProj);
             window.toggleAddForm();
+        };
+
+        // ★ 新設: プロジェクトの複製（コピー）機能
+        window.duplicateProject = async (pid) => {
+            if(!confirm("この情報をコピーして新しい予定を作成しますか？")) return;
+            const orig = window.projects.find(x => x.id === pid);
+            if(orig){
+                // タスクは元の情報をコピー（完了フラグは未完了に戻す）
+                const newTasks = orig.tasks.map(t => ({
+                    ...t,
+                    id: 't_' + Math.random().toString(36).substr(2, 9),
+                    completed: false,
+                    completedAt: null
+                }));
+
+                const newProj = {
+                    ...orig,
+                    id: 'p_' + Math.random().toString(36).substr(2, 9),
+                    presentationTitle: orig.presentationTitle ? orig.presentationTitle + "（コピー）" : "タイトル未定",
+                    tasks: newTasks,
+                    isExpanded: true,
+                    isEditing: true // 複製直後にそのまま編集画面を開く
+                };
+
+                window.projects.push(newProj);
+                window.render();
+                await saveProject(newProj);
+            }
         };
 
         window.toggleTask = async (pid, tid) => {
@@ -552,7 +575,6 @@
                        <option value="交流ひろば" ${proj.presentationFormat==='交流ひろば'?'selected':''}>交流ひろば</option>
                        <option value="その他" ${proj.presentationFormat==='その他'?'selected':''}>その他</option>`;
 
-                // ★ 変更: 日付部分にonchange="syncEditEndDate('${proj.id}')"を追加し、idを明示
                 html += `
                 <div class="bg-white border border-${color}-300 rounded-xl shadow-sm overflow-hidden">
                     ${proj.isEditing ? `
@@ -587,8 +609,10 @@
                         <div class="flex items-center gap-3 mt-3 sm:mt-0">
                             ${proj.projectType==='paper'?`<button onclick="event.stopPropagation();addReviewTasks('${proj.id}')" class="text-[10px] bg-rose-100 text-rose-800 px-2 py-1 rounded font-bold">査読対応</button>`:''}
                             <span class="text-[10px] font-bold">${prog}%</span>
-                            <button onclick="event.stopPropagation();startEdit('${proj.id}')">✏️</button>
-                            <button onclick="event.stopPropagation();deleteProject('${proj.id}')">🗑️</button>
+                            <!-- ★ 追加: 複製ボタン -->
+                            <button onclick="event.stopPropagation();duplicateProject('${proj.id}')" class="text-lg opacity-70 hover:opacity-100 transition" title="この情報を複製する">📋</button>
+                            <button onclick="event.stopPropagation();startEdit('${proj.id}')" class="text-lg">✏️</button>
+                            <button onclick="event.stopPropagation();deleteProject('${proj.id}')" class="text-lg">🗑️</button>
                         </div>
                     </div>`}
                     <div class="${proj.isExpanded && !proj.isEditing?'block':'hidden'} border-t border-slate-100">
