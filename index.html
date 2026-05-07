@@ -14,7 +14,6 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        /* 編集モード用のスタイル */
         .editing-input { background: white !important; border: 1px solid #cbd5e1 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
     </style>
 </head>
@@ -47,7 +46,6 @@
                 <span id="add-form-icon" class="text-slate-400 text-xs ml-auto">▼</span>
             </h2>
             <div id="add-project-form" class="hidden mt-4">
-                
                 <div class="flex gap-6 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200">
                     <label class="flex items-center gap-2 font-bold text-sm cursor-pointer text-blue-800">
                         <input type="radio" name="projType" value="conference" checked onchange="toggleFormMode()" class="w-4 h-4 text-blue-600">
@@ -365,20 +363,17 @@
             if(p){ const t = p.tasks.find(x => x.id === tid); if(t){ t.completed = !t.completed; t.completedAt = t.completed ? getJSTDateStr() : null; window.render(); await saveProject(p); } }
         };
 
-        // ★ 新設: 編集モード切替関数
         window.toggleTaskEdit = async (pid, tid, btn) => {
             const row = btn.closest('tr');
             const input = row.querySelector('.task-name-input');
             const isEditing = input.hasAttribute('readonly');
 
             if (isEditing) {
-                // 編集開始
                 input.removeAttribute('readonly');
                 input.classList.add('editing-input');
                 input.focus();
                 btn.innerHTML = '✅';
             } else {
-                // 保存実行
                 const val = input.value.trim();
                 const p = window.projects.find(x => x.id === pid);
                 if(p){ 
@@ -495,7 +490,11 @@
                         <div class="flex items-center gap-3">
                             <span class="text-xl">${proj.isExpanded?'🔽':'▶️'}</span>
                             <div>
-                                <h3 class="text-base font-black">${proj.projectType==='paper'?'📄':'🎓'} ${proj.name} <span class="px-1.5 py-0.5 rounded border text-[9px] bg-${color}-50 text-${color}-700 border-${color}-200">${proj.presentationFormat}</span></h3>
+                                <h3 class="text-base font-black">
+                                    ${proj.projectType==='paper'?'📄':'🎓'} ${proj.name} 
+                                    ${proj.url ? `<a href="${proj.url}" target="_blank" onclick="event.stopPropagation();" class="ml-2 text-indigo-500 hover:text-indigo-700">🌐</a>` : ''}
+                                    <span class="px-1.5 py-0.5 rounded border text-[9px] bg-${color}-50 text-${color}-700 border-${color}-200 ml-1">${proj.presentationFormat}</span>
+                                </h3>
                                 <div class="text-[10px] text-slate-500 mt-0.5">${proj.startDate} | ${proj.presentationTitle || '未定'}</div>
                             </div>
                         </div>
@@ -535,7 +534,7 @@
 
         window.renderTimelineView = (container) => {
             let all = []; 
-            window.projects.forEach(p => p.tasks.forEach(t => { if (!(t.completed && isOldTask(t.completedAt))) all.push({...t, pId:p.id, pName:p.name, pType:p.projectType, pTitle:p.presentationTitle}); }));
+            window.projects.forEach(p => p.tasks.forEach(t => { if (!(t.completed && isOldTask(t.completedAt))) all.push({...t, pId:p.id, pName:p.name, pType:p.projectType, pTitle:p.presentationTitle, pUrl:p.url}); }));
             all.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
 
             container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden shadow-sm"><table class="w-full text-sm">
@@ -547,7 +546,10 @@
                         <td class="p-3 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.pId}','${t.id}')"></td>
                         <td class="p-3"><input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}',this.value)" class="text-[11px] bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
                         <td class="p-3">
-                            <div class="text-[9px] font-bold opacity-60">${t.pType==='paper'?'📄':'🎓'} ${t.pName}</div>
+                            <div class="text-[9px] font-bold opacity-60">
+                                ${t.pType==='paper'?'📄':'🎓'} ${t.pName}
+                                ${t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="ml-1 text-indigo-500">🌐</a>` : ''}
+                            </div>
                             <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent px-1 rounded outline-none transition text-sm ${t.completed?'line-through text-slate-400':'font-medium'}">
                         </td>
                         <td class="p-3 text-center space-x-2">
