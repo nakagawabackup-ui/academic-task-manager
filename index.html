@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>研究活動（学会・論文・助成金・その他）統合タスク管理ツール</title>
+    <title>日本語教育・研究活動スケジュール管理</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
@@ -24,10 +24,10 @@
         <header class="mb-8 border-l-8 border-indigo-800 pl-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
                 <h1 class="text-2xl md:text-3xl font-black text-slate-900 flex flex-wrap items-center gap-3">
-                    研究活動スケジュール管理
+                    日本語教育・研究活動スケジュール管理
                     <span id="sync-status"></span>
                 </h1>
-                <p class="text-slate-500 mt-2 font-medium text-sm md:text-base">学会・論文・助成金、およびその他の業務タスクを統合管理します。</p>
+                <p class="text-slate-500 mt-2 font-medium text-sm md:text-base">学会・論文・助成金、および授業などその他の業務タスクを統合管理します。</p>
             </div>
             <div class="flex flex-col items-end gap-2">
                 <div id="auth-container" class="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 text-base flex items-center gap-3">
@@ -697,7 +697,6 @@
             if(p){ p.tasks = p.tasks.filter(x => x.id !== tid); window.render(); await saveProject(p); }
         };
 
-        // 単発・定期対応のタスク追加機能
         window.addCustomTask = async (pid) => {
             const n = document.getElementById(`cName_${pid}`);
             const startDateInput = document.getElementById(`cDate_${pid}`);
@@ -764,7 +763,7 @@
                     p.coi = document.getElementById(`editGrantCoI_${id}`).value;
                     p.collab = document.getElementById(`editGrantCollab_${id}`).value;
                 } else if (p.projectType === 'custom') {
-                    p.pi = document.getElementById(`editCustomPerson_${id}`).value; // 担当者
+                    p.pi = document.getElementById(`editCustomPerson_${id}`).value; 
                 } else {
                     p.presentationStatus = document.getElementById(`editStatus_${id}`).value; 
                 }
@@ -975,7 +974,6 @@
                             </tbody>
                         </table>
                         
-                        <!-- ここが改良したタスク追加エリア（定期タスク対応） -->
                         <div class="p-3 bg-slate-50 flex flex-col gap-2 border-t border-slate-300">
                             <div class="flex gap-2 items-start sm:items-center flex-col sm:flex-row">
                                 <input type="text" id="cName_${proj.id}" placeholder="タスクを追加..." class="w-full sm:flex-1 text-sm border rounded px-3 py-1.5">
