@@ -169,7 +169,7 @@
                     </div>
                 </div>
 
-                <!-- ★新規追加: 研究助成申請用フォーム -->
+                <!-- 研究助成申請用フォーム -->
                 <div id="form-grant" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div class="lg:col-span-1">
                         <label class="block text-sm font-bold text-slate-500 mb-1">助成金名 <span class="text-red-500">*</span></label>
@@ -272,7 +272,6 @@
             { name: '論文投稿完了（システム登録または郵送）', offsetDays: 0 }
         ];
 
-        // ★新規追加: 研究助成申請用タスクテンプレート
         const TASK_TEMPLATES_GRANT = [
             { name: '助成金情報の収集・募集要項の読み込み', offsetDays: -90 },
             { name: '研究構想の立案・ブレインストーミング', offsetDays: -75 },
@@ -417,7 +416,7 @@
             const type = document.querySelector('input[name="projType"]:checked').value;
             document.getElementById('form-conference').classList.toggle('hidden', type !== 'conference');
             document.getElementById('form-paper').classList.toggle('hidden', type !== 'paper');
-            document.getElementById('form-grant').classList.toggle('hidden', type !== 'grant'); // ★追加
+            document.getElementById('form-grant').classList.toggle('hidden', type !== 'grant');
         };
 
         window.importProject = async () => {
@@ -449,16 +448,15 @@
                 endDate = startDate;
                 templates = TASK_TEMPLATES_PAPER;
             } else {
-                // ★追加: 研究助成申請データの取得
                 name = document.getElementById('simGrantName').value;
                 title = document.getElementById('simGrantTitle').value;
-                format = ''; // 助成金には発表形式なし
-                status = document.getElementById('simGrantStatus').value; // 役割
-                peerReview = '査読無'; // 助成金は査読マーク非表示
+                format = ''; 
+                status = document.getElementById('simGrantStatus').value; 
+                peerReview = '査読無'; 
                 url = document.getElementById('simGrantUrl').value;
-                location = ''; // 場所なし
+                location = ''; 
                 memo = document.getElementById('simGrantMemo').value;
-                startDate = document.getElementById('simGrantStartDate').value; // 提出〆切
+                startDate = document.getElementById('simGrantStartDate').value; 
                 endDate = startDate;
                 templates = TASK_TEMPLATES_GRANT;
             }
@@ -491,7 +489,7 @@
             const newProj = {
                 id: 'p_' + Math.random().toString(36).substr(2, 9),
                 projectType: type, name, presentationTitle: title, presentationFormat: format,
-                presentationStatus: status,
+                presentationStatus: status, 
                 peerReview: peerReview,
                 memo: memo,
                 url, location, startDate, endDate, tasks, isExpanded: true
@@ -503,7 +501,6 @@
             window.toggleAddForm();
         };
 
-        // ★ 複製機能（コピーボタン）の動作ロジック
         window.duplicateProject = async (pid) => {
             if(!confirm("この情報をコピーして新しい予定を作成しますか？")) return;
             const orig = window.projects.find(x => x.id === pid);
@@ -511,17 +508,17 @@
                 const newTasks = orig.tasks.map(t => ({
                     ...t,
                     id: 't_' + Math.random().toString(36).substr(2, 9),
-                    completed: false, // コピー時はすべて未完了に戻す
+                    completed: false,
                     completedAt: null
                 }));
 
                 const newProj = {
                     ...orig,
                     id: 'p_' + Math.random().toString(36).substr(2, 9),
-                    presentationTitle: orig.presentationTitle ? orig.presentationTitle + "（コピー）" : "（コピー）",
+                    presentationTitle: orig.presentationTitle ? orig.presentationTitle + "（コピー）" : "タイトル未定",
                     tasks: newTasks,
                     isExpanded: true,
-                    isEditing: true // 複製直後に編集画面を開く
+                    isEditing: true
                 };
 
                 window.projects.push(newProj);
@@ -654,7 +651,6 @@
                 const prog = Math.round((done/proj.tasks.length)*100)||0;
                 const visibleTasks = proj.tasks.filter(t => !(t.completed && isOldTask(t.completedAt)));
                 
-                // 色とアイコンの設定
                 let color = 'blue';
                 let icon = '🎤';
                 let statusLabel = '発表者';
@@ -732,10 +728,11 @@
                         <div class="flex items-center gap-4 mt-3 sm:mt-0 shrink-0">
                             ${proj.projectType==='paper'?`<button onclick="event.stopPropagation();addReviewTasks('${proj.id}')" class="text-xs bg-rose-100 text-rose-800 px-3 py-1.5 rounded font-bold">査読対応</button>`:''}
                             <span class="text-sm font-bold">${prog}%</span>
-                            <!-- ★ コピーボタン (📋) -->
-                            <button onclick="event.stopPropagation();duplicateProject('${proj.id}')" class="text-xl opacity-70 hover:opacity-100 transition" title="この情報を複製する">📋</button>
-                            <button onclick="event.stopPropagation();startEdit('${proj.id}')" class="text-xl" title="編集">✏️</button>
-                            <button onclick="event.stopPropagation();deleteProject('${proj.id}')" class="text-xl" title="削除">🗑️</button>
+                            
+                            <!-- ★ アイコンの順番を 左から「編集」「コピー」「削除」に変更 -->
+                            <button onclick="event.stopPropagation();startEdit('${proj.id}')" class="text-xl hover:scale-110 transition-transform" title="編集">✏️</button>
+                            <button onclick="event.stopPropagation();duplicateProject('${proj.id}')" class="text-xl opacity-70 hover:opacity-100 transition" title="複製（コピー）">📋</button>
+                            <button onclick="event.stopPropagation();deleteProject('${proj.id}')" class="text-xl hover:scale-110 transition-transform" title="削除">🗑️</button>
                         </div>
                     </div>`}
                     <div class="${proj.isExpanded && !proj.isEditing?'block':'hidden'} border-t border-slate-100">
