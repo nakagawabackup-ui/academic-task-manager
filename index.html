@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>研究活動（学会・論文・助成金）統合タスク管理ツール</title>
+    <title>研究活動（学会・論文・助成金・その他）統合タスク管理ツール</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
@@ -27,7 +27,7 @@
                     研究活動スケジュール管理
                     <span id="sync-status"></span>
                 </h1>
-                <p class="text-slate-500 mt-2 font-medium text-sm md:text-base">学会発表・論文投稿・研究助成申請のタスクと〆切を統合管理します。</p>
+                <p class="text-slate-500 mt-2 font-medium text-sm md:text-base">学会・論文・助成金、およびその他の業務タスクを統合管理します。</p>
             </div>
             <div class="flex flex-col items-end gap-2">
                 <div id="auth-container" class="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 text-base flex items-center gap-3">
@@ -36,7 +36,7 @@
                     <button id="logout-btn" class="bg-slate-100 text-slate-600 px-4 py-2 rounded text-sm font-bold hover:bg-slate-200 transition border border-slate-200 hidden">ログアウト</button>
                 </div>
                 <div id="overview-stats" class="text-right text-base text-slate-600 font-bold bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 hidden md:block">
-                    </div>
+                </div>
             </div>
         </header>
 
@@ -60,6 +60,11 @@
                     <label class="flex items-center gap-2 font-bold text-base cursor-pointer text-emerald-800">
                         <input type="radio" name="projType" value="grant" onchange="toggleFormMode()" class="w-5 h-5 text-emerald-600">
                         💰 研究助成申請
+                    </label>
+                    <!-- 新規追加：任意のプロジェクト -->
+                    <label class="flex items-center gap-2 font-bold text-base cursor-pointer text-purple-800">
+                        <input type="radio" name="projType" value="custom" onchange="toggleFormMode()" class="w-5 h-5 text-purple-600">
+                        🗂️ 任意のプロジェクト
                     </label>
                 </div>
 
@@ -179,8 +184,6 @@
                         <label class="block text-sm font-bold text-slate-500 mb-1">研究課題名（タイトル）</label>
                         <input type="text" id="simGrantTitle" placeholder="例: 〇〇に関する研究" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                     </div>
-                    
-                    <!-- 新設：代表・分担・協力者 -->
                     <div class="lg:col-span-1">
                         <label class="block text-sm font-bold text-slate-500 mb-1">研究代表者</label>
                         <input type="text" id="simGrantPI" placeholder="例: 中川" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
@@ -193,7 +196,6 @@
                         <label class="block text-sm font-bold text-slate-500 mb-1">研究協力者</label>
                         <input type="text" id="simGrantCollab" placeholder="例: 佐藤, 鈴木" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                     </div>
-
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-bold text-slate-500 mb-1">公式サイト（募集要項）URL</label>
                         <input type="url" id="simGrantUrl" placeholder="https://..." class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
@@ -205,6 +207,66 @@
                     <div class="lg:col-span-1">
                         <label class="block text-sm font-bold text-slate-500 mb-1">提出〆切日 <span class="text-red-500">*</span></label>
                         <input type="date" id="simGrantStartDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <!-- 任意のプロジェクト用フォーム (新規追加) -->
+                <div id="form-custom" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-bold text-slate-500 mb-1">プロジェクト名（業務名など） <span class="text-red-500">*</span></label>
+                        <input type="text" id="simCustomName" placeholder="例: 留学生向け就職支援セミナー準備" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                    </div>
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-bold text-slate-500 mb-1">頻度（単発か定期か）</label>
+                        <div class="flex gap-4 p-2.5 bg-white border border-slate-300 rounded">
+                            <label class="flex items-center gap-2 cursor-pointer font-medium">
+                                <input type="radio" name="simCustomType" value="single" checked onchange="toggleCustomDateMode()" class="w-4 h-4 text-purple-600"> 単発の予定
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer font-medium">
+                                <input type="radio" name="simCustomType" value="recurring" onchange="toggleCustomDateMode()" class="w-4 h-4 text-purple-600"> 定期的な予定
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 単発時の日時 -->
+                    <div id="custom-single-date" class="lg:col-span-2">
+                        <label class="block text-sm font-bold text-slate-500 mb-1">実施日・期日 <span class="text-red-500">*</span></label>
+                        <input type="date" id="simCustomSingleDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                        <p class="text-xs text-slate-400 mt-1">※登録後、各プロジェクトのパネルから自由に準備タスクを追加できます。</p>
+                    </div>
+
+                    <!-- 定期時の日時 -->
+                    <div id="custom-recurring-date" class="hidden lg:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-500 mb-1">初回の日付 <span class="text-red-500">*</span></label>
+                            <input type="date" id="simCustomStartDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-500 mb-1">繰り返し頻度</label>
+                            <select id="simCustomFrequency" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500">
+                                <option value="weekly">毎週 (初回と同じ曜日)</option>
+                                <option value="biweekly">隔週 (2週間ごと)</option>
+                                <option value="monthly">毎月 (初回と同じ日付)</option>
+                                <option value="daily">毎日</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-500 mb-1">最終日（いつまで繰り返すか） <span class="text-red-500">*</span></label>
+                            <input type="date" id="simCustomEndDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-bold text-slate-500 mb-1">場所（大学、オンライン等）</label>
+                        <input type="text" id="simCustomLocation" placeholder="例: 横浜国立大学 ○○教室, Zoom等" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                    </div>
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-bold text-slate-500 mb-1">担当者・関係者</label>
+                        <input type="text" id="simCustomPerson" placeholder="例: 田中先生, 事務局" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                    </div>
+                    <div class="lg:col-span-4">
+                        <label class="block text-sm font-bold text-slate-500 mb-1">メモ（自由記述）</label>
+                        <textarea id="simCustomMemo" placeholder="プロジェクトの目的、持参物などを自由にメモできます" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" rows="2"></textarea>
                     </div>
                 </div>
 
@@ -324,7 +386,7 @@
             const d2 = new Date(d); d2.setDate(d2.getDate() + 1);
             const formatDate = (dt) => `${dt.getFullYear()}${String(dt.getMonth() + 1).padStart(2, '0')}${String(dt.getDate()).padStart(2, '0')}`;
             const text = encodeURIComponent(`[${projName}] ${taskName}`);
-            const details = encodeURIComponent(`研究活動タスク管理ツールより。\n${title ? 'タイトル: ' + title : ''}`);
+            const details = encodeURIComponent(`研究活動タスク管理ツールより。\n${title ? 'タイトル/詳細: ' + title : ''}`);
             return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${formatDate(d)}/${formatDate(d2)}&details=${details}`;
         }
 
@@ -428,11 +490,20 @@
             document.getElementById('form-conference').classList.toggle('hidden', type !== 'conference');
             document.getElementById('form-paper').classList.toggle('hidden', type !== 'paper');
             document.getElementById('form-grant').classList.toggle('hidden', type !== 'grant');
+            document.getElementById('form-custom').classList.toggle('hidden', type !== 'custom');
+        };
+
+        // 新規追加：任意のプロジェクトの日時切替
+        window.toggleCustomDateMode = () => {
+            const isRecurring = document.querySelector('input[name="simCustomType"]:checked').value === 'recurring';
+            document.getElementById('custom-single-date').classList.toggle('hidden', isRecurring);
+            document.getElementById('custom-recurring-date').classList.toggle('hidden', !isRecurring);
         };
 
         window.importProject = async () => {
             const type = document.querySelector('input[name="projType"]:checked').value;
-            let name, title, format, status, peerReview, url, location, startDate, endDate, memo, templates, pi, coi, collab;
+            let name, title = '', format = '', status = '', peerReview = '査読無', url = '', location = '', startDate, endDate, memo = '', templates = [], pi = '', coi = '', collab = '';
+            let customTasks = [];
 
             if (type === 'conference') {
                 name = document.getElementById('simConfName').value;
@@ -458,44 +529,80 @@
                 startDate = document.getElementById('simPaperStartDate').value;
                 endDate = startDate;
                 templates = TASK_TEMPLATES_PAPER;
-            } else {
+            } else if (type === 'grant') {
                 name = document.getElementById('simGrantName').value;
                 title = document.getElementById('simGrantTitle').value;
-                format = ''; 
-                status = ''; // 助成金では共通のstatusは使用しない
                 pi = document.getElementById('simGrantPI').value;
                 coi = document.getElementById('simGrantCoI').value;
                 collab = document.getElementById('simGrantCollab').value;
-                peerReview = '査読無'; 
                 url = document.getElementById('simGrantUrl').value;
-                location = ''; 
                 memo = document.getElementById('simGrantMemo').value;
                 startDate = document.getElementById('simGrantStartDate').value; 
                 endDate = startDate;
                 templates = TASK_TEMPLATES_GRANT;
+            } else if (type === 'custom') {
+                name = document.getElementById('simCustomName').value;
+                location = document.getElementById('simCustomLocation').value;
+                pi = document.getElementById('simCustomPerson').value; // 担当者をpiに保存
+                memo = document.getElementById('simCustomMemo').value;
+                const customMode = document.querySelector('input[name="simCustomType"]:checked').value;
+
+                if (customMode === 'single') {
+                    startDate = document.getElementById('simCustomSingleDate').value;
+                    endDate = startDate;
+                    if (!name || !startDate) return alert('必須項目を入力してください。');
+                    // 単発の場合は当日のタスクを1つだけ生成
+                    customTasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: `${name} (実施日/本番)`, dueDate: startDate, completed: false });
+                } else {
+                    startDate = document.getElementById('simCustomStartDate').value;
+                    endDate = document.getElementById('simCustomEndDate').value;
+                    const freq = document.getElementById('simCustomFrequency').value;
+                    if (!name || !startDate || !endDate) return alert('必須項目（初回と最終日）を入力してください。');
+                    if (new Date(endDate) < new Date(startDate)) return alert('最終日は初回の日付以降にしてください。');
+
+                    // 定期タスクのループ生成
+                    let curr = new Date(startDate);
+                    const end = new Date(endDate);
+                    let count = 1;
+                    while (curr <= end) {
+                        const dateStr = curr.toISOString().split('T')[0];
+                        customTasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: `${name} (第${count}回)`, dueDate: dateStr, completed: false });
+                        
+                        if (freq === 'weekly') curr.setDate(curr.getDate() + 7);
+                        else if (freq === 'biweekly') curr.setDate(curr.getDate() + 14);
+                        else if (freq === 'monthly') curr.setMonth(curr.getMonth() + 1);
+                        else if (freq === 'daily') curr.setDate(curr.getDate() + 1);
+                        count++;
+                    }
+                }
             }
 
             if (!name || !startDate) return alert('必須項目を入力してください。');
 
-            const tasks = templates.map(t => {
-                const d = new Date(startDate);
-                d.setDate(d.getDate() + t.offsetDays);
-                return { id: 't_' + Math.random().toString(36).substr(2, 9), name: t.name, dueDate: d.toISOString().split('T')[0], completed: false };
-            });
-
-            if (peerReview === '査読有') {
-                let reviewNoticeDate = new Date(startDate);
-                if (type === 'conference') {
-                    reviewNoticeDate.setDate(reviewNoticeDate.getDate() - 90);
-                }
-                reviewNoticeDate.setMonth(reviewNoticeDate.getMonth() + 2);
-
-                tasks.push({
-                    id: 't_' + Math.random().toString(36).substr(2, 9),
-                    name: '査読結果通知',
-                    dueDate: reviewNoticeDate.toISOString().split('T')[0],
-                    completed: false
+            let tasks = [];
+            if (type === 'custom') {
+                tasks = customTasks; // 任意のプロジェクトは動的生成したものを適用
+            } else {
+                tasks = templates.map(t => {
+                    const d = new Date(startDate);
+                    d.setDate(d.getDate() + t.offsetDays);
+                    return { id: 't_' + Math.random().toString(36).substr(2, 9), name: t.name, dueDate: d.toISOString().split('T')[0], completed: false };
                 });
+
+                if (peerReview === '査読有') {
+                    let reviewNoticeDate = new Date(startDate);
+                    if (type === 'conference') {
+                        reviewNoticeDate.setDate(reviewNoticeDate.getDate() - 90);
+                    }
+                    reviewNoticeDate.setMonth(reviewNoticeDate.getMonth() + 2);
+
+                    tasks.push({
+                        id: 't_' + Math.random().toString(36).substr(2, 9),
+                        name: '査読結果通知',
+                        dueDate: reviewNoticeDate.toISOString().split('T')[0],
+                        completed: false
+                    });
+                }
             }
 
             tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
@@ -504,7 +611,7 @@
                 id: 'p_' + Math.random().toString(36).substr(2, 9),
                 projectType: type, name, presentationTitle: title, presentationFormat: format,
                 presentationStatus: status, 
-                pi, coi, collab, // 研究助成用データ
+                pi, coi, collab, 
                 peerReview: peerReview,
                 memo: memo,
                 url, location, startDate, endDate, tasks, isExpanded: true
@@ -514,6 +621,17 @@
             window.render();
             await saveProject(newProj);
             window.toggleAddForm();
+            
+            // フォームのリセット
+            if (type === 'custom') {
+                document.getElementById('simCustomName').value = '';
+                document.getElementById('simCustomSingleDate').value = '';
+                document.getElementById('simCustomStartDate').value = '';
+                document.getElementById('simCustomEndDate').value = '';
+                document.getElementById('simCustomLocation').value = '';
+                document.getElementById('simCustomPerson').value = '';
+                document.getElementById('simCustomMemo').value = '';
+            }
         };
 
         window.duplicateProject = async (pid) => {
@@ -530,7 +648,7 @@
                 const newProj = {
                     ...orig,
                     id: 'p_' + Math.random().toString(36).substr(2, 9),
-                    presentationTitle: orig.presentationTitle ? orig.presentationTitle + "（コピー）" : "タイトル未定",
+                    name: orig.name + "（コピー）",
                     tasks: newTasks,
                     isExpanded: true,
                     isEditing: true
@@ -583,6 +701,7 @@
             if(p){ p.tasks = p.tasks.filter(x => x.id !== tid); window.render(); await saveProject(p); }
         };
 
+        // これが準備作業タスクなどを自由に追加できる機能です
         window.addCustomTask = async (pid) => {
             const n = document.getElementById(`cName_${pid}`), d = document.getElementById(`cDate_${pid}`);
             if(!n.value || !d.value) return alert('入力してください');
@@ -598,7 +717,8 @@
             const p = window.projects.find(x => x.id === id);
             if(p){
                 p.name = document.getElementById(`editName_${id}`).value;
-                p.presentationTitle = document.getElementById(`editTitle_${id}`).value;
+                const titleEl = document.getElementById(`editTitle_${id}`);
+                if (titleEl) p.presentationTitle = titleEl.value;
                 const fmtEl = document.getElementById(`editFormat_${id}`);
                 if (fmtEl) p.presentationFormat = fmtEl.value;
                 
@@ -606,13 +726,16 @@
                     p.pi = document.getElementById(`editGrantPI_${id}`).value;
                     p.coi = document.getElementById(`editGrantCoI_${id}`).value;
                     p.collab = document.getElementById(`editGrantCollab_${id}`).value;
+                } else if (p.projectType === 'custom') {
+                    p.pi = document.getElementById(`editCustomPerson_${id}`).value; // 担当者
                 } else {
                     p.presentationStatus = document.getElementById(`editStatus_${id}`).value; 
                 }
 
                 const prEl = document.getElementById(`editPeerReview_${id}`);
                 if (prEl) p.peerReview = prEl.value;
-                p.url = document.getElementById(`editUrl_${id}`).value;
+                const urlEl = document.getElementById(`editUrl_${id}`);
+                if (urlEl) p.url = urlEl.value;
                 const locEl = document.getElementById(`editLocation_${id}`);
                 if (locEl) p.location = locEl.value;
                 p.memo = document.getElementById(`editMemo_${id}`).value;
@@ -683,6 +806,8 @@
                     color = 'rose'; icon = '📄'; statusLabel = '著者';
                 } else if (proj.projectType === 'grant') {
                     color = 'emerald'; icon = '💰'; dateLabel = '提出〆切';
+                } else if (proj.projectType === 'custom') {
+                    color = 'purple'; icon = '🗂️'; dateLabel = '初回/実施日';
                 }
                 
                 const formatOptions = proj.projectType === 'paper'
@@ -710,12 +835,13 @@
                     ${proj.isEditing ? `
                     <div class="p-4 bg-slate-50 border-b border-slate-200 text-sm">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                            <div>${proj.projectType === 'grant' ? '助成金名' : '名称'}: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-2 border rounded text-base"></div>
-                            <div class="md:col-span-2">${proj.projectType === 'grant' ? '研究課題名' : 'タイトル'}: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle}" class="w-full p-2 border rounded text-base"></div>
+                            <div>名称: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-2 border rounded text-base"></div>
                             
-                            ${proj.projectType !== 'grant' ? `<div>発表形式: <select id="editFormat_${proj.id}" class="w-full p-2 border rounded text-base">${formatOptions}</select></div>` : ''}
-                            
-                            ${proj.projectType !== 'grant' ? `<div>${statusLabel}: <input type="text" id="editStatus_${proj.id}" value="${proj.presentationStatus || ''}" placeholder="自由に記入" class="w-full p-2 border rounded text-base"></div>` : ''}
+                            ${proj.projectType !== 'custom' ? `
+                                <div class="md:col-span-2">${proj.projectType === 'grant' ? '研究課題名' : 'タイトル'}: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle || ''}" class="w-full p-2 border rounded text-base"></div>
+                                ${proj.projectType !== 'grant' ? `<div>発表形式: <select id="editFormat_${proj.id}" class="w-full p-2 border rounded text-base">${formatOptions}</select></div>` : ''}
+                                ${proj.projectType !== 'grant' ? `<div>${statusLabel}: <input type="text" id="editStatus_${proj.id}" value="${proj.presentationStatus || ''}" placeholder="自由に記入" class="w-full p-2 border rounded text-base"></div>` : ''}
+                            ` : ''}
                             
                             ${proj.projectType === 'grant' ? `
                                 <div>研究代表者: <input type="text" id="editGrantPI_${proj.id}" value="${proj.pi || ''}" placeholder="例: 中川" class="w-full p-2 border rounded text-base"></div>
@@ -723,11 +849,15 @@
                                 <div>研究協力者: <input type="text" id="editGrantCollab_${proj.id}" value="${proj.collab || ''}" placeholder="例: 佐藤" class="w-full p-2 border rounded text-base"></div>
                             ` : ''}
 
-                            ${proj.projectType !== 'grant' ? `<div>査読有無: <select id="editPeerReview_${proj.id}" class="w-full p-2 border rounded text-base">${peerReviewOptions}</select></div>` : ''}
+                            ${proj.projectType === 'custom' ? `
+                                <div>担当者・関係者: <input type="text" id="editCustomPerson_${proj.id}" value="${proj.pi || ''}" class="w-full p-2 border rounded text-base"></div>
+                            ` : ''}
+
+                            ${proj.projectType !== 'grant' && proj.projectType !== 'custom' ? `<div>査読有無: <select id="editPeerReview_${proj.id}" class="w-full p-2 border rounded text-base">${peerReviewOptions}</select></div>` : ''}
                             
-                            <div>URL: <input type="text" id="editUrl_${proj.id}" value="${proj.url}" class="w-full p-2 border rounded text-base"></div>
+                            ${proj.projectType !== 'custom' ? `<div>URL: <input type="text" id="editUrl_${proj.id}" value="${proj.url || ''}" class="w-full p-2 border rounded text-base"></div>` : ''}
                             
-                            ${proj.projectType !== 'grant' ? `<div>開催地/規定: <input type="text" id="editLocation_${proj.id}" value="${proj.location || ''}" class="w-full p-2 border rounded text-base"></div>` : ''}
+                            ${proj.projectType !== 'grant' ? `<div>場所/規定: <input type="text" id="editLocation_${proj.id}" value="${proj.location || ''}" class="w-full p-2 border rounded text-base"></div>` : ''}
                             
                             <div class="md:col-span-3">メモ（自由記述）: <textarea id="editMemo_${proj.id}" class="w-full p-2 border rounded text-base" rows="2">${proj.memo || ''}</textarea></div>
                             <div class="flex gap-2">
@@ -743,14 +873,15 @@
                             <div>
                                 <h3 class="text-lg font-black flex items-center flex-wrap gap-2">
                                     <span>${icon} ${proj.name}</span>
-                                    ${proj.peerReview === '査読有' && proj.projectType !== 'grant' ? `<span class="text-xl" title="査読有">🔍</span>` : ''}
+                                    ${proj.peerReview === '査読有' && proj.projectType !== 'grant' && proj.projectType !== 'custom' ? `<span class="text-xl" title="査読有">🔍</span>` : ''}
                                     ${proj.url ? `<a href="${proj.url}" target="_blank" onclick="event.stopPropagation();" class="text-indigo-500 hover:text-indigo-700 text-xl">🌐</a>` : ''}
                                     ${proj.presentationFormat ? `<span class="px-2 py-0.5 rounded border text-xs bg-${color}-50 text-${color}-700 border-${color}-200">${proj.presentationFormat}</span>` : ''}
-                                    ${proj.presentationStatus && proj.projectType !== 'grant' ? `<span class="px-2 py-0.5 rounded border text-xs bg-slate-100 text-slate-700 border-slate-300">${proj.presentationStatus}</span>` : ''}
+                                    ${proj.presentationStatus && proj.projectType !== 'grant' && proj.projectType !== 'custom' ? `<span class="px-2 py-0.5 rounded border text-xs bg-slate-100 text-slate-700 border-slate-300">${proj.presentationStatus}</span>` : ''}
+                                    ${proj.projectType === 'custom' && proj.location ? `<span class="px-2 py-0.5 rounded border text-xs bg-slate-100 text-slate-700 border-slate-300">📍 ${proj.location}</span>` : ''}
                                 </h3>
                                 <div class="text-sm text-slate-500 mt-1 flex flex-col gap-1">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <span>${proj.startDate} ${proj.endDate && proj.endDate !== proj.startDate && proj.projectType !== 'grant' ? '〜 ' + proj.endDate : ''} | ${proj.presentationTitle || '未定'}</span>
+                                        <span>${proj.startDate} ${proj.endDate && proj.endDate !== proj.startDate && proj.projectType !== 'grant' ? '〜 ' + proj.endDate : ''} ${proj.presentationTitle ? '| ' + proj.presentationTitle : ''}</span>
                                         ${proj.memo ? `<span class="text-indigo-600 ml-2" title="${proj.memo}">💬 ${proj.memo}</span>` : ''}
                                     </div>
                                     ${proj.projectType === 'grant' && (proj.pi || proj.coi || proj.collab) ? `
@@ -758,6 +889,11 @@
                                         ${proj.pi ? `<span class="px-2 py-0.5 rounded border text-xs bg-emerald-50 text-emerald-700 border-emerald-200">代表: ${proj.pi}</span>` : ''}
                                         ${proj.coi ? `<span class="px-2 py-0.5 rounded border text-xs bg-emerald-50 text-emerald-700 border-emerald-200">分担: ${proj.coi}</span>` : ''}
                                         ${proj.collab ? `<span class="px-2 py-0.5 rounded border text-xs bg-emerald-50 text-emerald-700 border-emerald-200">協力: ${proj.collab}</span>` : ''}
+                                    </div>
+                                    ` : ''}
+                                    ${proj.projectType === 'custom' && proj.pi ? `
+                                    <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                        <span class="px-2 py-0.5 rounded border text-xs bg-purple-50 text-purple-700 border-purple-200">担当: ${proj.pi}</span>
                                     </div>
                                     ` : ''}
                                 </div>
@@ -784,7 +920,7 @@
                             <tbody class="divide-y divide-slate-300">
                                 ${visibleTasks.map(t => {
                                     const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
-                                    const rowColor = proj.projectType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/20') : proj.projectType==='grant'?(t.completed?'bg-emerald-50/40':'bg-emerald-50/20') : (t.completed?'bg-blue-50/40':'bg-blue-50/20');
+                                    const rowColor = proj.projectType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/20') : proj.projectType==='grant'?(t.completed?'bg-emerald-50/40':'bg-emerald-50/20') : proj.projectType==='custom'?(t.completed?'bg-purple-50/40':'bg-purple-50/20') : (t.completed?'bg-blue-50/40':'bg-blue-50/20');
                                     return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
                                         <td class="p-3 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${proj.id}','${t.id}')" class="w-4 h-4"></td>
                                         <td class="p-3">
@@ -802,7 +938,7 @@
                             </tbody>
                         </table>
                         <div class="p-3 bg-slate-50 flex gap-2 border-t border-slate-300">
-                            <input type="text" id="cName_${proj.id}" placeholder="新規タスクを追加..." class="flex-1 text-sm border rounded px-3 py-1.5">
+                            <input type="text" id="cName_${proj.id}" placeholder="準備タスクを追加..." class="flex-1 text-sm border rounded px-3 py-1.5">
                             <input type="date" id="cDate_${proj.id}" class="text-sm border rounded px-2 py-1.5">
                             <button onclick="addCustomTask('${proj.id}')" class="text-sm bg-slate-700 text-white px-4 rounded font-bold">＋</button>
                         </div>
@@ -854,12 +990,17 @@
                         ${all.length === 0 ? '<tr><td colspan="4" class="p-10 text-center text-slate-400 font-bold text-base">該当するタスクはありません</td></tr>' : 
                         all.map(t => {
                             const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
-                            const rowColor = t.pType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/30') : t.pType==='grant'?(t.completed?'bg-emerald-50/40':'bg-emerald-50/30') : (t.completed?'bg-blue-50/40':'bg-blue-50/30');
-                            const icon = t.pType==='paper'?'📄':t.pType==='grant'?'💰':'🎤';
+                            const rowColor = t.pType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/30') : t.pType==='grant'?(t.completed?'bg-emerald-50/40':'bg-emerald-50/30') : t.pType==='custom'?(t.completed?'bg-purple-50/40':'bg-purple-50/30') : (t.completed?'bg-blue-50/40':'bg-blue-50/30');
+                            const icon = t.pType==='paper'?'📄':t.pType==='grant'?'💰':t.pType==='custom'?'🗂️':'🎤';
                             
-                            const statusText = t.pType === 'grant' 
-                                ? [t.pPi ? '代表:'+t.pPi : '', t.pCoi ? '分担:'+t.pCoi : ''].filter(Boolean).join(', ')
-                                : t.pStatus;
+                            let statusText = '';
+                            if (t.pType === 'grant') {
+                                statusText = [t.pPi ? '代表:'+t.pPi : '', t.pCoi ? '分担:'+t.pCoi : ''].filter(Boolean).join(', ');
+                            } else if (t.pType === 'custom') {
+                                statusText = t.pPi ? '担当:'+t.pPi : '';
+                            } else {
+                                statusText = t.pStatus || '';
+                            }
 
                             return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
                                 <td class="p-3 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.pId}','${t.id}')" class="w-4 h-4"></td>
@@ -867,7 +1008,7 @@
                                 <td class="p-3">
                                     <div class="text-xs font-bold opacity-70 flex items-center flex-wrap gap-2 mb-1">
                                         <span>${icon} ${t.pName}</span>
-                                        ${t.pPeerReview === '査読有' && t.pType !== 'grant' ? `<span class="text-sm" title="査読有">🔍</span>` : ''}
+                                        ${t.pPeerReview === '査読有' && t.pType !== 'grant' && t.pType !== 'custom' ? `<span class="text-sm" title="査読有">🔍</span>` : ''}
                                         ${t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="text-indigo-500 text-sm">🌐</a>` : ''}
                                         ${statusText ? `<span class="px-1.5 py-0.5 rounded border bg-slate-100 text-slate-600 border-slate-200">${statusText}</span>` : ''}
                                     </div>
