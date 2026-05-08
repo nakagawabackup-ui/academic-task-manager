@@ -216,7 +216,7 @@
         const TASK_TEMPLATES_CONF = [
             { name: '入会手続き', offsetDays: -120 },
             { name: '年会費支払い', offsetDays: -120 },
-            { name: '発表申し込み', offsetDays: -90 },
+            { name: '発表申し込み', offsetDays: -90 }, // 学会申し込み〆切（これを基準にする）
             { name: '発表要旨の作成', offsetDays: -60 },
             { name: '参加申し込み', offsetDays: -60 },
             { name: '交通手段予約', offsetDays: -60 },
@@ -235,7 +235,7 @@
             { name: '指定フォーマットへの流し込み', offsetDays: -10 },
             { name: '引用モレ・参考文献リストの書式確認', offsetDays: -5 },
             { name: '最終確認（文字数上限・図表番号等）', offsetDays: -2 },
-            { name: '論文投稿完了（システム登録または郵送）', offsetDays: 0 }
+            { name: '論文投稿完了（システム登録または郵送）', offsetDays: 0 } // 投稿〆切（これを基準にする）
         ];
 
         const REVIEW_TASKS = [
@@ -383,7 +383,7 @@
                 peerReview = document.getElementById('simConfPeerReview').value;
                 url = document.getElementById('simConfUrl').value;
                 location = document.getElementById('simConfLocation').value || '未設定';
-                startDate = document.getElementById('simConfStartDate').value;
+                startDate = document.getElementById('simConfStartDate').value; // 学会の開催日
                 endDate = document.getElementById('simConfEndDate').value || startDate;
                 templates = TASK_TEMPLATES_CONF;
             } else {
@@ -394,7 +394,7 @@
                 peerReview = document.getElementById('simPaperPeerReview').value;
                 url = document.getElementById('simPaperUrl').value;
                 location = document.getElementById('simPaperLocation').value || '指定なし';
-                startDate = document.getElementById('simPaperStartDate').value;
+                startDate = document.getElementById('simPaperStartDate').value; // 論文の投稿目標日
                 endDate = startDate;
                 templates = TASK_TEMPLATES_PAPER;
             }
@@ -407,25 +407,24 @@
                 return { id: 't_' + Math.random().toString(36).substr(2, 9), name: t.name, dueDate: d.toISOString().split('T')[0], completed: false };
             });
 
-            // ★ 追加: 査読有の場合は「査読結果通知」タスクを追加（締切の2ヶ月後）
+            // ★ 修正: 査読有の場合は「査読結果通知」タスクを動的に追加
             if (peerReview === '査読有') {
-                let baseDate = new Date(startDate);
+                let reviewNoticeDate = new Date(startDate);
                 if (type === 'conference') {
-                    // 学会発表の場合の締切は「開始日の90日前」
-                    baseDate.setDate(baseDate.getDate() - 90);
+                    // 学会の場合: 「発表申し込み」の日付（開催日の90日前）を基準にする
+                    reviewNoticeDate.setDate(reviewNoticeDate.getDate() - 90);
                 }
-                // 締切の2ヶ月後を設定
-                baseDate.setMonth(baseDate.getMonth() + 2);
+                // 基準日の「2ヶ月後」に設定
+                reviewNoticeDate.setMonth(reviewNoticeDate.getMonth() + 2);
 
                 tasks.push({
                     id: 't_' + Math.random().toString(36).substr(2, 9),
                     name: '査読結果通知',
-                    dueDate: baseDate.toISOString().split('T')[0],
+                    dueDate: reviewNoticeDate.toISOString().split('T')[0],
                     completed: false
                 });
             }
 
-            // タスクを日付順に並び替え
             tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
 
             const newProj = {
