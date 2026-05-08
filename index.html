@@ -51,7 +51,7 @@
                 <div class="flex gap-6 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200">
                     <label class="flex items-center gap-2 font-bold text-base cursor-pointer text-blue-800">
                         <input type="radio" name="projType" value="conference" checked onchange="toggleFormMode()" class="w-5 h-5 text-blue-600">
-                        🎓 学会発表
+                        🎤 学会発表
                     </label>
                     <label class="flex items-center gap-2 font-bold text-base cursor-pointer text-rose-800">
                         <input type="radio" name="projType" value="paper" onchange="toggleFormMode()" class="w-5 h-5 text-rose-600">
@@ -89,7 +89,6 @@
                         </select>
                     </div>
                     <div>
-                        <!-- ★追加: 査読の有無 -->
                         <label class="block text-sm font-bold text-slate-500 mb-1">査読の有無</label>
                         <select id="simConfPeerReview" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500">
                             <option value="査読有">査読有</option>
@@ -144,7 +143,6 @@
                         </select>
                     </div>
                     <div>
-                        <!-- ★追加: 査読の有無 -->
                         <label class="block text-sm font-bold text-slate-500 mb-1">査読の有無</label>
                         <select id="simPaperPeerReview" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500">
                             <option value="査読有">査読有</option>
@@ -382,7 +380,7 @@
                 title = document.getElementById('simConfTitle').value;
                 format = document.getElementById('simConfFormat').value;
                 status = document.getElementById('simConfStatus').value;
-                peerReview = document.getElementById('simConfPeerReview').value; // ★追加
+                peerReview = document.getElementById('simConfPeerReview').value;
                 url = document.getElementById('simConfUrl').value;
                 location = document.getElementById('simConfLocation').value || '未設定';
                 startDate = document.getElementById('simConfStartDate').value;
@@ -393,7 +391,7 @@
                 title = document.getElementById('simPaperTitle').value;
                 format = document.getElementById('simPaperFormat').value;
                 status = document.getElementById('simPaperStatus').value;
-                peerReview = document.getElementById('simPaperPeerReview').value; // ★追加
+                peerReview = document.getElementById('simPaperPeerReview').value;
                 url = document.getElementById('simPaperUrl').value;
                 location = document.getElementById('simPaperLocation').value || '指定なし';
                 startDate = document.getElementById('simPaperStartDate').value;
@@ -409,11 +407,32 @@
                 return { id: 't_' + Math.random().toString(36).substr(2, 9), name: t.name, dueDate: d.toISOString().split('T')[0], completed: false };
             });
 
+            // ★ 追加: 査読有の場合は「査読結果通知」タスクを追加（締切の2ヶ月後）
+            if (peerReview === '査読有') {
+                let baseDate = new Date(startDate);
+                if (type === 'conference') {
+                    // 学会発表の場合の締切は「開始日の90日前」
+                    baseDate.setDate(baseDate.getDate() - 90);
+                }
+                // 締切の2ヶ月後を設定
+                baseDate.setMonth(baseDate.getMonth() + 2);
+
+                tasks.push({
+                    id: 't_' + Math.random().toString(36).substr(2, 9),
+                    name: '査読結果通知',
+                    dueDate: baseDate.toISOString().split('T')[0],
+                    completed: false
+                });
+            }
+
+            // タスクを日付順に並び替え
+            tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+
             const newProj = {
                 id: 'p_' + Math.random().toString(36).substr(2, 9),
                 projectType: type, name, presentationTitle: title, presentationFormat: format,
                 presentationStatus: status,
-                peerReview: peerReview, // ★追加
+                peerReview: peerReview,
                 url, location, startDate, endDate, tasks, isExpanded: true
             };
 
@@ -508,7 +527,7 @@
                 p.presentationTitle = document.getElementById(`editTitle_${id}`).value;
                 p.presentationFormat = document.getElementById(`editFormat_${id}`).value;
                 p.presentationStatus = document.getElementById(`editStatus_${id}`).value;
-                p.peerReview = document.getElementById(`editPeerReview_${id}`).value; // ★追加
+                p.peerReview = document.getElementById(`editPeerReview_${id}`).value;
                 p.url = document.getElementById(`editUrl_${id}`).value;
                 p.location = document.getElementById(`editLocation_${id}`).value;
                 p.startDate = document.getElementById(`editStartDate_${id}`).value;
@@ -593,7 +612,6 @@
                        <option value="交流ひろば" ${proj.presentationFormat==='交流ひろば'?'selected':''}>交流ひろば</option>
                        <option value="その他" ${proj.presentationFormat==='その他'?'selected':''}>その他</option>`;
 
-                // ★追加: 編集用の査読オプション
                 const peerReviewOptions = `
                     <option value="査読有" ${proj.peerReview === '査読有' ? 'selected' : ''}>査読有</option>
                     <option value="査読無" ${proj.peerReview !== '査読有' ? 'selected' : ''}>査読無</option>
@@ -623,7 +641,7 @@
                             <span class="text-2xl">${proj.isExpanded?'🔽':'▶️'}</span>
                             <div>
                                 <h3 class="text-lg font-black flex items-center flex-wrap gap-2">
-                                    <span>${proj.projectType==='paper'?'📄':'🎓'} ${proj.name}</span>
+                                    <span>${proj.projectType==='paper'?'📄':'🎤'} ${proj.name}</span>
                                     ${proj.peerReview === '査読有' ? `<span class="text-xl" title="査読有">🔍</span>` : ''}
                                     ${proj.url ? `<a href="${proj.url}" target="_blank" onclick="event.stopPropagation();" class="text-indigo-500 hover:text-indigo-700 text-xl">🌐</a>` : ''}
                                     <span class="px-2 py-0.5 rounded border text-xs bg-${color}-50 text-${color}-700 border-${color}-200">${proj.presentationFormat}</span>
@@ -729,7 +747,7 @@
                                 <td class="p-3"><input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}',this.value)" class="text-sm bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
                                 <td class="p-3">
                                     <div class="text-xs font-bold opacity-70 flex items-center flex-wrap gap-2 mb-1">
-                                        <span>${t.pType==='paper'?'📄':'🎓'} ${t.pName}</span>
+                                        <span>${t.pType==='paper'?'📄':'🎤'} ${t.pName}</span>
                                         ${t.pPeerReview === '査読有' ? `<span class="text-sm" title="査読有">🔍</span>` : ''}
                                         ${t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="text-indigo-500 text-sm">🌐</a>` : ''}
                                         ${t.pStatus ? `<span class="px-1.5 py-0.5 rounded border bg-slate-100 text-slate-600 border-slate-200">${t.pStatus}</span>` : ''}
