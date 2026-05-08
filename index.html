@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>研究活動（学会・論文）統合タスク管理ツール</title>
+    <title>研究活動（学会・論文・助成金）統合タスク管理ツール</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
@@ -27,7 +27,7 @@
                     研究活動スケジュール管理
                     <span id="sync-status"></span>
                 </h1>
-                <p class="text-slate-500 mt-2 font-medium text-sm md:text-base">学会発表と論文投稿に向けたタスク・〆切を統合管理します。</p>
+                <p class="text-slate-500 mt-2 font-medium text-sm md:text-base">学会発表・論文投稿・研究助成申請のタスクと〆切を統合管理します。</p>
             </div>
             <div class="flex flex-col items-end gap-2">
                 <div id="auth-container" class="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 text-base flex items-center gap-3">
@@ -44,11 +44,11 @@
 
         <div class="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl mb-8 shadow-sm">
             <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 cursor-pointer select-none mb-4" onclick="toggleAddForm()">
-                <span class="text-indigo-600 text-lg">➕</span> 新しい予定（学会・論文）を追加
+                <span class="text-indigo-600 text-lg">➕</span> 新しい予定を追加
                 <span id="add-form-icon" class="text-slate-400 text-sm ml-auto">▼</span>
             </h2>
             <div id="add-project-form" class="hidden mt-4">
-                <div class="flex gap-6 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <div class="flex flex-wrap gap-4 md:gap-6 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200">
                     <label class="flex items-center gap-2 font-bold text-base cursor-pointer text-blue-800">
                         <input type="radio" name="projType" value="conference" checked onchange="toggleFormMode()" class="w-5 h-5 text-blue-600">
                         🎤 学会発表
@@ -57,8 +57,13 @@
                         <input type="radio" name="projType" value="paper" onchange="toggleFormMode()" class="w-5 h-5 text-rose-600">
                         📄 論文投稿
                     </label>
+                    <label class="flex items-center gap-2 font-bold text-base cursor-pointer text-emerald-800">
+                        <input type="radio" name="projType" value="grant" onchange="toggleFormMode()" class="w-5 h-5 text-emerald-600">
+                        💰 研究助成申請
+                    </label>
                 </div>
 
+                <!-- 学会発表用フォーム -->
                 <div id="form-conference" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div class="lg:col-span-1">
                         <label class="block text-sm font-bold text-slate-500 mb-1">学会・大会名 <span class="text-red-500">*</span></label>
@@ -81,7 +86,6 @@
                         </select>
                     </div>
                     <div>
-                        <!-- ★ 変更: 発表者（自由記述） -->
                         <label class="block text-sm font-bold text-slate-500 mb-1">発表者</label>
                         <input type="text" id="simConfStatus" placeholder="例: 中川, 田中" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
@@ -116,6 +120,7 @@
                     </div>
                 </div>
 
+                <!-- 論文投稿用フォーム -->
                 <div id="form-paper" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div class="lg:col-span-1">
                         <label class="block text-sm font-bold text-slate-500 mb-1">投稿先（学会誌・紀要） <span class="text-red-500">*</span></label>
@@ -136,7 +141,6 @@
                         </select>
                     </div>
                     <div>
-                        <!-- ★ 変更: 著者（自由記述） -->
                         <label class="block text-sm font-bold text-slate-500 mb-1">著者</label>
                         <input type="text" id="simPaperStatus" placeholder="例: 中川, 田中" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
                     </div>
@@ -162,6 +166,34 @@
                     <div class="lg:col-span-1">
                         <label class="block text-sm font-bold text-slate-500 mb-1">目標投稿日(〆切) <span class="text-red-500">*</span></label>
                         <input type="date" id="simPaperStartDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                    </div>
+                </div>
+
+                <!-- ★新規追加: 研究助成申請用フォーム -->
+                <div id="form-grant" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div class="lg:col-span-1">
+                        <label class="block text-sm font-bold text-slate-500 mb-1">助成金名 <span class="text-red-500">*</span></label>
+                        <input type="text" id="simGrantName" placeholder="例: 科研費 基盤(C)" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-bold text-slate-500 mb-1">研究課題名（タイトル）</label>
+                        <input type="text" id="simGrantTitle" placeholder="例: 〇〇に関する研究" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-500 mb-1">役割（代表/分担など）</label>
+                        <input type="text" id="simGrantStatus" placeholder="例: 代表" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-bold text-slate-500 mb-1">公式サイト（募集要項）URL</label>
+                        <input type="url" id="simGrantUrl" placeholder="https://..." class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                    <div class="lg:col-span-4">
+                        <label class="block text-sm font-bold text-slate-500 mb-1">メモ（自由記述）</label>
+                        <textarea id="simGrantMemo" placeholder="助成金額の目安、学内〆切の特記事項、共同研究者などをメモできます" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" rows="2"></textarea>
+                    </div>
+                    <div class="lg:col-span-1">
+                        <label class="block text-sm font-bold text-slate-500 mb-1">提出〆切日 <span class="text-red-500">*</span></label>
+                        <input type="date" id="simGrantStartDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                     </div>
                 </div>
 
@@ -238,6 +270,20 @@
             { name: '引用モレ・参考文献リストの書式確認', offsetDays: -5 },
             { name: '最終確認（文字数上限・図表番号等）', offsetDays: -2 },
             { name: '論文投稿完了（システム登録または郵送）', offsetDays: 0 }
+        ];
+
+        // ★新規追加: 研究助成申請用タスクテンプレート
+        const TASK_TEMPLATES_GRANT = [
+            { name: '助成金情報の収集・募集要項の読み込み', offsetDays: -90 },
+            { name: '研究構想の立案・ブレインストーミング', offsetDays: -75 },
+            { name: '共同研究者への打診・承諾の取り付け', offsetDays: -60 },
+            { name: '研究計画書（ドラフト）の作成開始', offsetDays: -45 },
+            { name: '経費（予算）の概算・見積もりの取得', offsetDays: -30 },
+            { name: '研究計画書の第一稿完成・推敲', offsetDays: -21 },
+            { name: '第三者（同僚等）へのレビュー依頼', offsetDays: -14 },
+            { name: 'レビューの反映・最終稿の作成', offsetDays: -7 },
+            { name: '学内・所属機関への事前提出（学内〆切）', offsetDays: -5 },
+            { name: '電子申請システムへの入力・アップロード', offsetDays: 0 }
         ];
 
         const REVIEW_TASKS = [
@@ -371,6 +417,7 @@
             const type = document.querySelector('input[name="projType"]:checked').value;
             document.getElementById('form-conference').classList.toggle('hidden', type !== 'conference');
             document.getElementById('form-paper').classList.toggle('hidden', type !== 'paper');
+            document.getElementById('form-grant').classList.toggle('hidden', type !== 'grant'); // ★追加
         };
 
         window.importProject = async () => {
@@ -381,26 +428,39 @@
                 name = document.getElementById('simConfName').value;
                 title = document.getElementById('simConfTitle').value;
                 format = document.getElementById('simConfFormat').value;
-                status = document.getElementById('simConfStatus').value; // 発表者(自由記述)
+                status = document.getElementById('simConfStatus').value;
                 peerReview = document.getElementById('simConfPeerReview').value;
                 url = document.getElementById('simConfUrl').value;
-                location = document.getElementById('simConfLocation').value || '未設定';
+                location = document.getElementById('simConfLocation').value || '';
                 memo = document.getElementById('simConfMemo').value;
                 startDate = document.getElementById('simConfStartDate').value; 
                 endDate = document.getElementById('simConfEndDate').value || startDate;
                 templates = TASK_TEMPLATES_CONF;
-            } else {
+            } else if (type === 'paper') {
                 name = document.getElementById('simPaperName').value;
                 title = document.getElementById('simPaperTitle').value;
                 format = document.getElementById('simPaperFormat').value;
-                status = document.getElementById('simPaperStatus').value; // 著者(自由記述)
+                status = document.getElementById('simPaperStatus').value;
                 peerReview = document.getElementById('simPaperPeerReview').value;
                 url = document.getElementById('simPaperUrl').value;
-                location = document.getElementById('simPaperLocation').value || '指定なし';
+                location = document.getElementById('simPaperLocation').value || '';
                 memo = document.getElementById('simPaperMemo').value;
                 startDate = document.getElementById('simPaperStartDate').value;
                 endDate = startDate;
                 templates = TASK_TEMPLATES_PAPER;
+            } else {
+                // ★追加: 研究助成申請データの取得
+                name = document.getElementById('simGrantName').value;
+                title = document.getElementById('simGrantTitle').value;
+                format = ''; // 助成金には発表形式なし
+                status = document.getElementById('simGrantStatus').value; // 役割
+                peerReview = '査読無'; // 助成金は査読マーク非表示
+                url = document.getElementById('simGrantUrl').value;
+                location = ''; // 場所なし
+                memo = document.getElementById('simGrantMemo').value;
+                startDate = document.getElementById('simGrantStartDate').value; // 提出〆切
+                endDate = startDate;
+                templates = TASK_TEMPLATES_GRANT;
             }
 
             if (!name || !startDate) return alert('必須項目を入力してください。');
@@ -431,7 +491,7 @@
             const newProj = {
                 id: 'p_' + Math.random().toString(36).substr(2, 9),
                 projectType: type, name, presentationTitle: title, presentationFormat: format,
-                presentationStatus: status, // 自由記述テキスト
+                presentationStatus: status,
                 peerReview: peerReview,
                 memo: memo,
                 url, location, startDate, endDate, tasks, isExpanded: true
@@ -443,6 +503,7 @@
             window.toggleAddForm();
         };
 
+        // ★ 複製機能（コピーボタン）の動作ロジック
         window.duplicateProject = async (pid) => {
             if(!confirm("この情報をコピーして新しい予定を作成しますか？")) return;
             const orig = window.projects.find(x => x.id === pid);
@@ -450,17 +511,17 @@
                 const newTasks = orig.tasks.map(t => ({
                     ...t,
                     id: 't_' + Math.random().toString(36).substr(2, 9),
-                    completed: false,
+                    completed: false, // コピー時はすべて未完了に戻す
                     completedAt: null
                 }));
 
                 const newProj = {
                     ...orig,
                     id: 'p_' + Math.random().toString(36).substr(2, 9),
-                    presentationTitle: orig.presentationTitle ? orig.presentationTitle + "（コピー）" : "タイトル未定",
+                    presentationTitle: orig.presentationTitle ? orig.presentationTitle + "（コピー）" : "（コピー）",
                     tasks: newTasks,
                     isExpanded: true,
-                    isEditing: true
+                    isEditing: true // 複製直後に編集画面を開く
                 };
 
                 window.projects.push(newProj);
@@ -526,11 +587,14 @@
             if(p){
                 p.name = document.getElementById(`editName_${id}`).value;
                 p.presentationTitle = document.getElementById(`editTitle_${id}`).value;
-                p.presentationFormat = document.getElementById(`editFormat_${id}`).value;
-                p.presentationStatus = document.getElementById(`editStatus_${id}`).value; // 自由記述テキスト
-                p.peerReview = document.getElementById(`editPeerReview_${id}`).value;
+                const fmtEl = document.getElementById(`editFormat_${id}`);
+                if (fmtEl) p.presentationFormat = fmtEl.value;
+                p.presentationStatus = document.getElementById(`editStatus_${id}`).value; 
+                const prEl = document.getElementById(`editPeerReview_${id}`);
+                if (prEl) p.peerReview = prEl.value;
                 p.url = document.getElementById(`editUrl_${id}`).value;
-                p.location = document.getElementById(`editLocation_${id}`).value;
+                const locEl = document.getElementById(`editLocation_${id}`);
+                if (locEl) p.location = locEl.value;
                 p.memo = document.getElementById(`editMemo_${id}`).value;
                 p.startDate = document.getElementById(`editStartDate_${id}`).value;
                 const endEl = document.getElementById(`editEndDate_${id}`);
@@ -589,7 +653,18 @@
                 const done = proj.tasks.filter(x=>x.completed).length;
                 const prog = Math.round((done/proj.tasks.length)*100)||0;
                 const visibleTasks = proj.tasks.filter(t => !(t.completed && isOldTask(t.completedAt)));
-                const color = proj.projectType === 'paper' ? 'rose' : 'blue';
+                
+                // 色とアイコンの設定
+                let color = 'blue';
+                let icon = '🎤';
+                let statusLabel = '発表者';
+                let dateLabel = '開始日';
+                
+                if (proj.projectType === 'paper') {
+                    color = 'rose'; icon = '📄'; statusLabel = '著者';
+                } else if (proj.projectType === 'grant') {
+                    color = 'emerald'; icon = '💰'; statusLabel = '役割'; dateLabel = '提出〆切';
+                }
                 
                 const formatOptions = proj.projectType === 'paper'
                     ? `<option value="">未定 / 選択なし</option>
@@ -616,20 +691,23 @@
                     ${proj.isEditing ? `
                     <div class="p-4 bg-slate-50 border-b border-slate-200 text-sm">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                            <div>名称: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-2 border rounded text-base"></div>
-                            <div class="md:col-span-2">タイトル: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle}" class="w-full p-2 border rounded text-base"></div>
-                            <div>発表形式: <select id="editFormat_${proj.id}" class="w-full p-2 border rounded text-base">${formatOptions}</select></div>
+                            <div>${proj.projectType === 'grant' ? '助成金名' : '名称'}: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-2 border rounded text-base"></div>
+                            <div class="md:col-span-2">${proj.projectType === 'grant' ? '研究課題名' : 'タイトル'}: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle}" class="w-full p-2 border rounded text-base"></div>
                             
-                            <!-- ★ 変更: 編集フォームでも自由記述のinputタグを使用 -->
-                            <div>${proj.projectType==='paper'?'著者':'発表者'}: <input type="text" id="editStatus_${proj.id}" value="${proj.presentationStatus || ''}" placeholder="例: 中川, 田中" class="w-full p-2 border rounded text-base"></div>
+                            ${proj.projectType !== 'grant' ? `<div>発表形式: <select id="editFormat_${proj.id}" class="w-full p-2 border rounded text-base">${formatOptions}</select></div>` : ''}
                             
-                            <div>査読有無: <select id="editPeerReview_${proj.id}" class="w-full p-2 border rounded text-base">${peerReviewOptions}</select></div>
+                            <div>${statusLabel}: <input type="text" id="editStatus_${proj.id}" value="${proj.presentationStatus || ''}" placeholder="自由に記入" class="w-full p-2 border rounded text-base"></div>
+                            
+                            ${proj.projectType !== 'grant' ? `<div>査読有無: <select id="editPeerReview_${proj.id}" class="w-full p-2 border rounded text-base">${peerReviewOptions}</select></div>` : ''}
+                            
                             <div>URL: <input type="text" id="editUrl_${proj.id}" value="${proj.url}" class="w-full p-2 border rounded text-base"></div>
-                            <div>メモ/地: <input type="text" id="editLocation_${proj.id}" value="${proj.location}" class="w-full p-2 border rounded text-base"></div>
+                            
+                            ${proj.projectType !== 'grant' ? `<div>開催地/規定: <input type="text" id="editLocation_${proj.id}" value="${proj.location || ''}" class="w-full p-2 border rounded text-base"></div>` : ''}
+                            
                             <div class="md:col-span-3">メモ（自由記述）: <textarea id="editMemo_${proj.id}" class="w-full p-2 border rounded text-base" rows="2">${proj.memo || ''}</textarea></div>
                             <div class="flex gap-2">
-                                <div class="w-1/2">開始日: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" onchange="syncEditEndDate('${proj.id}')" class="w-full p-2 border rounded text-base"></div>
-                                <div class="w-1/2">終了日: <input type="date" id="editEndDate_${proj.id}" value="${proj.endDate || proj.startDate}" class="w-full p-2 border rounded text-base"></div>
+                                <div class="${proj.projectType === 'grant' ? 'w-full' : 'w-1/2'}">${dateLabel}: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" onchange="syncEditEndDate('${proj.id}')" class="w-full p-2 border rounded text-base"></div>
+                                ${proj.projectType !== 'grant' ? `<div class="w-1/2">終了日: <input type="date" id="editEndDate_${proj.id}" value="${proj.endDate || proj.startDate}" class="w-full p-2 border rounded text-base"></div>` : ''}
                             </div>
                         </div>
                         <div class="flex justify-end gap-2"><button onclick="cancelEdit('${proj.id}')" class="px-4 py-2 bg-white border rounded text-sm font-bold">戻る</button><button onclick="saveEdit('${proj.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded text-sm font-bold">保存</button></div>
@@ -639,24 +717,25 @@
                             <span class="text-2xl">${proj.isExpanded?'🔽':'▶️'}</span>
                             <div>
                                 <h3 class="text-lg font-black flex items-center flex-wrap gap-2">
-                                    <span>${proj.projectType==='paper'?'📄':'🎤'} ${proj.name}</span>
-                                    ${proj.peerReview === '査読有' ? `<span class="text-xl" title="査読有">🔍</span>` : ''}
+                                    <span>${icon} ${proj.name}</span>
+                                    ${proj.peerReview === '査読有' && proj.projectType !== 'grant' ? `<span class="text-xl" title="査読有">🔍</span>` : ''}
                                     ${proj.url ? `<a href="${proj.url}" target="_blank" onclick="event.stopPropagation();" class="text-indigo-500 hover:text-indigo-700 text-xl">🌐</a>` : ''}
-                                    <span class="px-2 py-0.5 rounded border text-xs bg-${color}-50 text-${color}-700 border-${color}-200">${proj.presentationFormat}</span>
+                                    ${proj.presentationFormat ? `<span class="px-2 py-0.5 rounded border text-xs bg-${color}-50 text-${color}-700 border-${color}-200">${proj.presentationFormat}</span>` : ''}
                                     ${proj.presentationStatus ? `<span class="px-2 py-0.5 rounded border text-xs bg-slate-100 text-slate-700 border-slate-300">${proj.presentationStatus}</span>` : ''}
                                 </h3>
-                                <div class="text-sm text-slate-500 mt-1 flex items-center gap-2">
-                                    <span>${proj.startDate} ${proj.endDate && proj.endDate !== proj.startDate ? '〜 ' + proj.endDate : ''} | ${proj.presentationTitle || '未定'}</span>
+                                <div class="text-sm text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                                    <span>${proj.startDate} ${proj.endDate && proj.endDate !== proj.startDate && proj.projectType !== 'grant' ? '〜 ' + proj.endDate : ''} | ${proj.presentationTitle || '未定'}</span>
                                     ${proj.memo ? `<span class="text-indigo-600 ml-2" title="${proj.memo}">💬 ${proj.memo}</span>` : ''}
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 mt-3 sm:mt-0">
+                        <div class="flex items-center gap-4 mt-3 sm:mt-0 shrink-0">
                             ${proj.projectType==='paper'?`<button onclick="event.stopPropagation();addReviewTasks('${proj.id}')" class="text-xs bg-rose-100 text-rose-800 px-3 py-1.5 rounded font-bold">査読対応</button>`:''}
                             <span class="text-sm font-bold">${prog}%</span>
+                            <!-- ★ コピーボタン (📋) -->
                             <button onclick="event.stopPropagation();duplicateProject('${proj.id}')" class="text-xl opacity-70 hover:opacity-100 transition" title="この情報を複製する">📋</button>
-                            <button onclick="event.stopPropagation();startEdit('${proj.id}')" class="text-xl">✏️</button>
-                            <button onclick="event.stopPropagation();deleteProject('${proj.id}')" class="text-xl">🗑️</button>
+                            <button onclick="event.stopPropagation();startEdit('${proj.id}')" class="text-xl" title="編集">✏️</button>
+                            <button onclick="event.stopPropagation();deleteProject('${proj.id}')" class="text-xl" title="削除">🗑️</button>
                         </div>
                     </div>`}
                     <div class="${proj.isExpanded && !proj.isEditing?'block':'hidden'} border-t border-slate-100">
@@ -672,7 +751,7 @@
                             <tbody class="divide-y divide-slate-300">
                                 ${visibleTasks.map(t => {
                                     const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
-                                    const rowColor = proj.projectType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/20'):(t.completed?'bg-blue-50/40':'bg-blue-50/20');
+                                    const rowColor = proj.projectType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/20') : proj.projectType==='grant'?(t.completed?'bg-emerald-50/40':'bg-emerald-50/20') : (t.completed?'bg-blue-50/40':'bg-blue-50/20');
                                     return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
                                         <td class="p-3 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${proj.id}','${t.id}')" class="w-4 h-4"></td>
                                         <td class="p-3">
@@ -742,14 +821,15 @@
                         ${all.length === 0 ? '<tr><td colspan="4" class="p-10 text-center text-slate-400 font-bold text-base">該当するタスクはありません</td></tr>' : 
                         all.map(t => {
                             const isPast = !t.completed && new Date(t.dueDate) < new Date(new Date().setHours(0,0,0,0));
-                            const rowColor = t.pType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/30'):(t.completed?'bg-blue-50/40':'bg-blue-50/30');
+                            const rowColor = t.pType==='paper'?(t.completed?'bg-rose-50/40':'bg-rose-50/30') : t.pType==='grant'?(t.completed?'bg-emerald-50/40':'bg-emerald-50/30') : (t.completed?'bg-blue-50/40':'bg-blue-50/30');
+                            const icon = t.pType==='paper'?'📄':t.pType==='grant'?'💰':'🎤';
                             return `<tr class="${rowColor} ${t.completed?'opacity-50':''}">
                                 <td class="p-3 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.pId}','${t.id}')" class="w-4 h-4"></td>
                                 <td class="p-3"><input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}',this.value)" class="text-sm bg-transparent border-none ${isPast?'text-red-600 font-bold':''}"></td>
                                 <td class="p-3">
                                     <div class="text-xs font-bold opacity-70 flex items-center flex-wrap gap-2 mb-1">
-                                        <span>${t.pType==='paper'?'📄':'🎤'} ${t.pName}</span>
-                                        ${t.pPeerReview === '査読有' ? `<span class="text-sm" title="査読有">🔍</span>` : ''}
+                                        <span>${icon} ${t.pName}</span>
+                                        ${t.pPeerReview === '査読有' && t.pType !== 'grant' ? `<span class="text-sm" title="査読有">🔍</span>` : ''}
                                         ${t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="text-indigo-500 text-sm">🌐</a>` : ''}
                                         ${t.pStatus ? `<span class="px-1.5 py-0.5 rounded border bg-slate-100 text-slate-600 border-slate-200">${t.pStatus}</span>` : ''}
                                     </div>
