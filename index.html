@@ -89,6 +89,14 @@
                         </select>
                     </div>
                     <div>
+                        <!-- ★追加: 査読の有無 -->
+                        <label class="block text-sm font-bold text-slate-500 mb-1">査読の有無</label>
+                        <select id="simConfPeerReview" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500">
+                            <option value="査読有">査読有</option>
+                            <option value="査読無" selected>査読無</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-sm font-bold text-slate-500 mb-1">公式サイトURL</label>
                         <input type="url" id="simConfUrl" placeholder="https://..." class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
@@ -133,6 +141,14 @@
                             <option value="単著">単著</option>
                             <option value="共著（筆頭）">共著（筆頭）</option>
                             <option value="共著（筆頭でない）">共著（筆頭でない）</option>
+                        </select>
+                    </div>
+                    <div>
+                        <!-- ★追加: 査読の有無 -->
+                        <label class="block text-sm font-bold text-slate-500 mb-1">査読の有無</label>
+                        <select id="simPaperPeerReview" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500">
+                            <option value="査読有">査読有</option>
+                            <option value="査読無" selected>査読無</option>
                         </select>
                     </div>
                     <div>
@@ -359,13 +375,14 @@
 
         window.importProject = async () => {
             const type = document.querySelector('input[name="projType"]:checked').value;
-            let name, title, format, status, url, location, startDate, endDate, templates;
+            let name, title, format, status, peerReview, url, location, startDate, endDate, templates;
 
             if (type === 'conference') {
                 name = document.getElementById('simConfName').value;
                 title = document.getElementById('simConfTitle').value;
                 format = document.getElementById('simConfFormat').value;
                 status = document.getElementById('simConfStatus').value;
+                peerReview = document.getElementById('simConfPeerReview').value; // ★追加
                 url = document.getElementById('simConfUrl').value;
                 location = document.getElementById('simConfLocation').value || '未設定';
                 startDate = document.getElementById('simConfStartDate').value;
@@ -376,6 +393,7 @@
                 title = document.getElementById('simPaperTitle').value;
                 format = document.getElementById('simPaperFormat').value;
                 status = document.getElementById('simPaperStatus').value;
+                peerReview = document.getElementById('simPaperPeerReview').value; // ★追加
                 url = document.getElementById('simPaperUrl').value;
                 location = document.getElementById('simPaperLocation').value || '指定なし';
                 startDate = document.getElementById('simPaperStartDate').value;
@@ -395,6 +413,7 @@
                 id: 'p_' + Math.random().toString(36).substr(2, 9),
                 projectType: type, name, presentationTitle: title, presentationFormat: format,
                 presentationStatus: status,
+                peerReview: peerReview, // ★追加
                 url, location, startDate, endDate, tasks, isExpanded: true
             };
 
@@ -489,6 +508,7 @@
                 p.presentationTitle = document.getElementById(`editTitle_${id}`).value;
                 p.presentationFormat = document.getElementById(`editFormat_${id}`).value;
                 p.presentationStatus = document.getElementById(`editStatus_${id}`).value;
+                p.peerReview = document.getElementById(`editPeerReview_${id}`).value; // ★追加
                 p.url = document.getElementById(`editUrl_${id}`).value;
                 p.location = document.getElementById(`editLocation_${id}`).value;
                 p.startDate = document.getElementById(`editStartDate_${id}`).value;
@@ -573,6 +593,12 @@
                        <option value="交流ひろば" ${proj.presentationFormat==='交流ひろば'?'selected':''}>交流ひろば</option>
                        <option value="その他" ${proj.presentationFormat==='その他'?'selected':''}>その他</option>`;
 
+                // ★追加: 編集用の査読オプション
+                const peerReviewOptions = `
+                    <option value="査読有" ${proj.peerReview === '査読有' ? 'selected' : ''}>査読有</option>
+                    <option value="査読無" ${proj.peerReview !== '査読有' ? 'selected' : ''}>査読無</option>
+                `;
+
                 html += `
                 <div class="bg-white border border-${color}-300 rounded-xl shadow-sm overflow-hidden">
                     ${proj.isEditing ? `
@@ -582,6 +608,7 @@
                             <div class="md:col-span-2">タイトル: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle}" class="w-full p-2 border rounded text-base"></div>
                             <div>発表形式: <select id="editFormat_${proj.id}" class="w-full p-2 border rounded text-base">${formatOptions}</select></div>
                             <div>ステイタス: <select id="editStatus_${proj.id}" class="w-full p-2 border rounded text-base">${statusOptions}</select></div>
+                            <div>査読有無: <select id="editPeerReview_${proj.id}" class="w-full p-2 border rounded text-base">${peerReviewOptions}</select></div>
                             <div>URL: <input type="text" id="editUrl_${proj.id}" value="${proj.url}" class="w-full p-2 border rounded text-base"></div>
                             <div>メモ/地: <input type="text" id="editLocation_${proj.id}" value="${proj.location}" class="w-full p-2 border rounded text-base"></div>
                             <div class="flex gap-2">
@@ -597,6 +624,7 @@
                             <div>
                                 <h3 class="text-lg font-black flex items-center flex-wrap gap-2">
                                     <span>${proj.projectType==='paper'?'📄':'🎓'} ${proj.name}</span>
+                                    ${proj.peerReview === '査読有' ? `<span class="text-xl" title="査読有">🔍</span>` : ''}
                                     ${proj.url ? `<a href="${proj.url}" target="_blank" onclick="event.stopPropagation();" class="text-indigo-500 hover:text-indigo-700 text-xl">🌐</a>` : ''}
                                     <span class="px-2 py-0.5 rounded border text-xs bg-${color}-50 text-${color}-700 border-${color}-200">${proj.presentationFormat}</span>
                                     ${proj.presentationStatus ? `<span class="px-2 py-0.5 rounded border text-xs bg-slate-100 text-slate-700 border-slate-300">${proj.presentationStatus}</span>` : ''}
@@ -667,7 +695,7 @@
                     if (window.timelineFilter === '2months' && dueDate > twoMonthsLater) include = false;
                     
                     if (include) {
-                        all.push({...t, pId:p.id, pName:p.name, pType:p.projectType, pTitle:p.presentationTitle, pUrl:p.url, pStatus:p.presentationStatus});
+                        all.push({...t, pId:p.id, pName:p.name, pType:p.projectType, pTitle:p.presentationTitle, pUrl:p.url, pStatus:p.presentationStatus, pPeerReview:p.peerReview});
                     }
                 }
             }));
@@ -702,6 +730,7 @@
                                 <td class="p-3">
                                     <div class="text-xs font-bold opacity-70 flex items-center flex-wrap gap-2 mb-1">
                                         <span>${t.pType==='paper'?'📄':'🎓'} ${t.pName}</span>
+                                        ${t.pPeerReview === '査読有' ? `<span class="text-sm" title="査読有">🔍</span>` : ''}
                                         ${t.pUrl ? `<a href="${t.pUrl}" target="_blank" class="text-indigo-500 text-sm">🌐</a>` : ''}
                                         ${t.pStatus ? `<span class="px-1.5 py-0.5 rounded border bg-slate-100 text-slate-600 border-slate-200">${t.pStatus}</span>` : ''}
                                     </div>
