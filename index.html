@@ -81,12 +81,9 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-500 mb-1">ステイタス</label>
-                        <select id="simConfStatus" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500">
-                            <option value="単独">単独</option>
-                            <option value="共同（筆頭）">共同（筆頭）</option>
-                            <option value="共同（筆頭でない）">共同（筆頭でない）</option>
-                        </select>
+                        <!-- ★ 変更: 発表者（自由記述） -->
+                        <label class="block text-sm font-bold text-slate-500 mb-1">発表者</label>
+                        <input type="text" id="simConfStatus" placeholder="例: 中川, 田中" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-slate-500 mb-1">査読の有無</label>
@@ -139,12 +136,9 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-500 mb-1">ステイタス</label>
-                        <select id="simPaperStatus" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500">
-                            <option value="単著">単著</option>
-                            <option value="共著（筆頭）">共著（筆頭）</option>
-                            <option value="共著（筆頭でない）">共著（筆頭でない）</option>
-                        </select>
+                        <!-- ★ 変更: 著者（自由記述） -->
+                        <label class="block text-sm font-bold text-slate-500 mb-1">著者</label>
+                        <input type="text" id="simPaperStatus" placeholder="例: 中川, 田中" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-slate-500 mb-1">査読の有無</label>
@@ -387,11 +381,11 @@
                 name = document.getElementById('simConfName').value;
                 title = document.getElementById('simConfTitle').value;
                 format = document.getElementById('simConfFormat').value;
-                status = document.getElementById('simConfStatus').value;
+                status = document.getElementById('simConfStatus').value; // 発表者(自由記述)
                 peerReview = document.getElementById('simConfPeerReview').value;
                 url = document.getElementById('simConfUrl').value;
                 location = document.getElementById('simConfLocation').value || '未設定';
-                memo = document.getElementById('simConfMemo').value; // ★追加
+                memo = document.getElementById('simConfMemo').value;
                 startDate = document.getElementById('simConfStartDate').value; 
                 endDate = document.getElementById('simConfEndDate').value || startDate;
                 templates = TASK_TEMPLATES_CONF;
@@ -399,11 +393,11 @@
                 name = document.getElementById('simPaperName').value;
                 title = document.getElementById('simPaperTitle').value;
                 format = document.getElementById('simPaperFormat').value;
-                status = document.getElementById('simPaperStatus').value;
+                status = document.getElementById('simPaperStatus').value; // 著者(自由記述)
                 peerReview = document.getElementById('simPaperPeerReview').value;
                 url = document.getElementById('simPaperUrl').value;
                 location = document.getElementById('simPaperLocation').value || '指定なし';
-                memo = document.getElementById('simPaperMemo').value; // ★追加
+                memo = document.getElementById('simPaperMemo').value;
                 startDate = document.getElementById('simPaperStartDate').value;
                 endDate = startDate;
                 templates = TASK_TEMPLATES_PAPER;
@@ -437,9 +431,9 @@
             const newProj = {
                 id: 'p_' + Math.random().toString(36).substr(2, 9),
                 projectType: type, name, presentationTitle: title, presentationFormat: format,
-                presentationStatus: status,
+                presentationStatus: status, // 自由記述テキスト
                 peerReview: peerReview,
-                memo: memo, // ★追加
+                memo: memo,
                 url, location, startDate, endDate, tasks, isExpanded: true
             };
 
@@ -533,11 +527,11 @@
                 p.name = document.getElementById(`editName_${id}`).value;
                 p.presentationTitle = document.getElementById(`editTitle_${id}`).value;
                 p.presentationFormat = document.getElementById(`editFormat_${id}`).value;
-                p.presentationStatus = document.getElementById(`editStatus_${id}`).value;
+                p.presentationStatus = document.getElementById(`editStatus_${id}`).value; // 自由記述テキスト
                 p.peerReview = document.getElementById(`editPeerReview_${id}`).value;
                 p.url = document.getElementById(`editUrl_${id}`).value;
                 p.location = document.getElementById(`editLocation_${id}`).value;
-                p.memo = document.getElementById(`editMemo_${id}`).value; // ★追加
+                p.memo = document.getElementById(`editMemo_${id}`).value;
                 p.startDate = document.getElementById(`editStartDate_${id}`).value;
                 const endEl = document.getElementById(`editEndDate_${id}`);
                 p.endDate = endEl ? endEl.value || p.startDate : p.startDate;
@@ -597,14 +591,6 @@
                 const visibleTasks = proj.tasks.filter(t => !(t.completed && isOldTask(t.completedAt)));
                 const color = proj.projectType === 'paper' ? 'rose' : 'blue';
                 
-                const statusOptions = proj.projectType === 'paper' 
-                    ? `<option value="単著" ${proj.presentationStatus==='単著'?'selected':''}>単著</option>
-                       <option value="共著（筆頭）" ${proj.presentationStatus==='共著（筆頭）'?'selected':''}>共著（筆頭）</option>
-                       <option value="共著（筆頭でない）" ${proj.presentationStatus==='共著（筆頭でない）'?'selected':''}>共著（筆頭でない）</option>`
-                    : `<option value="単独" ${proj.presentationStatus==='単独'?'selected':''}>単独</option>
-                       <option value="共同（筆頭）" ${proj.presentationStatus==='共同（筆頭）'?'selected':''}>共同（筆頭）</option>
-                       <option value="共同（筆頭でない）" ${proj.presentationStatus==='共同（筆頭でない）'?'selected':''}>共同（筆頭でない）</option>`;
-
                 const formatOptions = proj.projectType === 'paper'
                     ? `<option value="">未定 / 選択なし</option>
                        <option value="論文" ${proj.presentationFormat==='論文'?'selected':''}>論文</option>
@@ -633,7 +619,10 @@
                             <div>名称: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-2 border rounded text-base"></div>
                             <div class="md:col-span-2">タイトル: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle}" class="w-full p-2 border rounded text-base"></div>
                             <div>発表形式: <select id="editFormat_${proj.id}" class="w-full p-2 border rounded text-base">${formatOptions}</select></div>
-                            <div>ステイタス: <select id="editStatus_${proj.id}" class="w-full p-2 border rounded text-base">${statusOptions}</select></div>
+                            
+                            <!-- ★ 変更: 編集フォームでも自由記述のinputタグを使用 -->
+                            <div>${proj.projectType==='paper'?'著者':'発表者'}: <input type="text" id="editStatus_${proj.id}" value="${proj.presentationStatus || ''}" placeholder="例: 中川, 田中" class="w-full p-2 border rounded text-base"></div>
+                            
                             <div>査読有無: <select id="editPeerReview_${proj.id}" class="w-full p-2 border rounded text-base">${peerReviewOptions}</select></div>
                             <div>URL: <input type="text" id="editUrl_${proj.id}" value="${proj.url}" class="w-full p-2 border rounded text-base"></div>
                             <div>メモ/地: <input type="text" id="editLocation_${proj.id}" value="${proj.location}" class="w-full p-2 border rounded text-base"></div>
