@@ -21,15 +21,27 @@
 </head>
 <body class="p-4 md:p-8">
     <div class="max-w-6xl mx-auto">
-        <header class="mb-8 border-l-8 border-indigo-800 pl-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-            <div>
+        <header class="mb-8 border-l-8 border-indigo-800 pl-6 flex flex-col md:flex-row justify-between items-start gap-4">
+            <div class="flex-1 w-full">
                 <h1 class="text-2xl md:text-3xl font-black text-slate-900 flex flex-wrap items-center gap-3">
                     日本語教育・研究活動スケジュール管理
                     <span id="sync-status"></span>
                 </h1>
                 <p class="text-slate-500 mt-2 font-medium text-sm md:text-base">学会・論文・助成金、および授業などその他の業務タスクを統合管理します。</p>
+                
+                <!-- 新規追加：別ツールへのリンクバナー -->
+                <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 md:p-4 inline-block w-full max-w-3xl shadow-sm">
+                    <a href="https://nihongo-gakkai.netlify.app/" target="_blank" class="group flex items-center gap-2 text-blue-800 font-bold text-sm md:text-base mb-1 w-fit">
+                        <span class="text-xl">🔍</span> 
+                        <span class="group-hover:underline decoration-2 underline-offset-2 transition-all">学会発表情報ファインダー</span>
+                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1 transition group-hover:bg-blue-200">別ツール連携</span>
+                    </a>
+                    <p class="text-xs md:text-sm text-blue-700/80 pl-7 leading-relaxed">
+                        日本語教育及び関連分野の主要13学会について、開催日時・会場・発表種目・発表資格・参加費・申込期限を一覧できます。
+                    </p>
+                </div>
             </div>
-            <div class="flex flex-col items-end gap-2">
+            <div class="flex flex-col items-end gap-2 shrink-0">
                 <div id="auth-container" class="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 text-base flex items-center gap-3">
                     <span id="user-info" class="text-slate-600 font-bold">起動中...</span>
                     <button id="login-btn" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-indigo-700 transition shadow hidden">Googleでログイン</button>
@@ -61,7 +73,6 @@
                         <input type="radio" name="projType" value="grant" onchange="toggleFormMode()" class="w-5 h-5 text-emerald-600">
                         💰 研究助成申請
                     </label>
-                    <!-- 新規追加：任意のプロジェクト -->
                     <label class="flex items-center gap-2 font-bold text-base cursor-pointer text-purple-800">
                         <input type="radio" name="projType" value="custom" onchange="toggleFormMode()" class="w-5 h-5 text-purple-600">
                         🗂️ 任意のプロジェクト
