@@ -125,7 +125,7 @@
                     </div>
                     <div class="flex gap-2 lg:col-span-2">
                         <div class="w-1/2">
-                            <label class="block text-sm font-bold text-slate-500 mb-1">実施日（期日） <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-bold text-slate-500 mb-1">開催日（期日） <span class="text-red-500">*</span></label>
                             <input type="date" id="simConfStartDate" onchange="syncEndDate()" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div class="w-1/2">
@@ -342,7 +342,8 @@
             { name: '交通手段予約', offsetDays: -60 },
             { name: '出張手続き', offsetDays: -30 },
             { name: '発表予稿の作成', offsetDays: -30 },
-            { name: 'ポスター・スライドの作成', offsetDays: -21 }
+            { name: 'ポスター・スライドの作成', offsetDays: -21 },
+            { name: 'ポスターの印刷・発注', offsetDays: -14 }
         ];
 
         const TASK_TEMPLATES_PAPER = [
@@ -1042,7 +1043,6 @@
                                         </td>
                                     </tr>`}).join('')}
                                 
-                                <!-- 【新規追加】プロジェクト完了の確認行 -->
                                 ${(() => {
                                     const allCompleted = proj.tasks.length > 0 && proj.tasks.every(t => t.completed);
                                     const disabledAttr = allCompleted ? '' : 'disabled';
@@ -1172,13 +1172,11 @@
             </div>`;
         };
 
-        // 【新機能】保管庫 UI レンダリング（カテゴリ振り分け対応）
         window.renderVaultView = (container) => {
             const completed = window.projects.filter(p => p.status === 'completed');
             const pending = window.projects.filter(p => p.status === 'pending');
             const textToExport = window.generateAchievementText();
 
-            // 完了プロジェクトのカテゴリ分類
             const confs = completed.filter(p => p.projectType === 'conference');
             const papers = completed.filter(p => p.projectType === 'paper');
             const grants = completed.filter(p => p.projectType === 'grant');
@@ -1223,7 +1221,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- カテゴリ分類された完了リスト -->
                     <div>
                         <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <span class="text-green-600">✅</span> 完了したプロジェクト
@@ -1235,7 +1232,6 @@
                         ${renderCategory('任意のプロジェクト', '🗂️', customs)}
                     </div>
 
-                    <!-- 保留リスト -->
                     <div>
                         <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <span class="text-orange-500">⏸️</span> 保留中のプロジェクト (${pending.length})
