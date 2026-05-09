@@ -148,7 +148,7 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-500 mb-1">原稿種別</label>
                         <select id="simPaperFormat" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500">
-                            <option value="論文">論文</option>
+                            <option value="論文" selected>論文</option>
                             <option value="実践報告">実践報告</option>
                             <option value="研究ノート">研究ノート</option>
                             <option value="調査報告">調査報告</option>
@@ -343,7 +343,7 @@
             { name: '出張手続き', offsetDays: -30 },
             { name: '発表予稿の作成', offsetDays: -30 },
             { name: 'ポスター・スライドの作成', offsetDays: -21 },
-            { name: 'ポスターの印刷・発注', offsetDays: -14 }
+            { name: 'ポスターの印刷・発注', offsetDays: -14 } // 追加
         ];
 
         const TASK_TEMPLATES_PAPER = [
@@ -634,15 +634,23 @@
             await saveProject(newProj);
             window.toggleAddForm();
             
-            if (type === 'custom') {
-                document.getElementById('simCustomName').value = '';
-                document.getElementById('simCustomSingleDate').value = '';
-                document.getElementById('simCustomStartDate').value = '';
-                document.getElementById('simCustomEndDate').value = '';
-                document.getElementById('simCustomLocation').value = '';
-                document.getElementById('simCustomPerson').value = '';
-                document.getElementById('simCustomMemo').value = '';
-            }
+            // フォームの値をリセット（すべてのタイプに対応）
+            const formIds = [
+                'simConfName', 'simConfTitle', 'simConfStatus', 'simConfUrl', 'simConfLocation', 'simConfMemo', 'simConfStartDate', 'simConfEndDate',
+                'simPaperName', 'simPaperTitle', 'simPaperStatus', 'simPaperUrl', 'simPaperLocation', 'simPaperMemo', 'simPaperStartDate',
+                'simGrantName', 'simGrantTitle', 'simGrantPI', 'simGrantCoI', 'simGrantCollab', 'simGrantUrl', 'simGrantMemo', 'simGrantStartDate',
+                'simCustomName', 'simCustomSingleDate', 'simCustomStartDate', 'simCustomEndDate', 'simCustomLocation', 'simCustomPerson', 'simCustomMemo'
+            ];
+            formIds.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.value = '';
+            });
+            // selectの初期値リセット
+            document.getElementById('simConfFormat').value = '';
+            document.getElementById('simConfPeerReview').value = '査読無';
+            document.getElementById('simPaperFormat').value = '論文';
+            document.getElementById('simPaperPeerReview').value = '査読無';
+            document.getElementById('simCustomFrequency').value = 'weekly';
         };
 
         window.duplicateProject = async (pid) => {
