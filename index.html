@@ -316,6 +316,16 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // ★Storageモジュールの追加
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        // ★★★ 【管理者設定】★★★
+        // ここに先生のGoogleアカウント（Gmailアドレス）を指定してください。
+        // このアドレスでログインした時のみ「ファイルを直接アップロード」機能が有効になります。
+        const ADMIN_EMAILS = [
+            "ここに先生のGmailアドレスを入力してください@gmail.com", 
+            "nakagawa@example.com"
+        ];
 
         const myFirebaseConfig = {
             apiKey: "AIzaSyC7mMddmukCPXkPX7Z2MD5fTcCFmUXnKGw",
@@ -329,6 +339,7 @@
         window.projects = [];
         window.currentTab = 'timeline';
         window.timelineFilter = 'all'; 
+        window.isAdmin = false; // 管理者フラグ
         
         const APP_ID = 'academic_manager_v1'; 
         const LOCAL_STORAGE_KEY = 'academic_projects_v1';
@@ -343,7 +354,7 @@
             { name: '出張手続き', offsetDays: -30 },
             { name: '発表予稿の作成', offsetDays: -30 },
             { name: 'ポスター・スライドの作成', offsetDays: -21 },
-            { name: 'ポスターの印刷・発注', offsetDays: -14 } // 追加
+            { name: 'ポスターの印刷・発注', offsetDays: -14 }
         ];
 
         const TASK_TEMPLATES_PAPER = [
@@ -380,7 +391,7 @@
             { name: '修正原稿の再提出（Resubmission）', offsetDays: 45 }
         ];
 
-        let app, auth, db, provider;
+        let app, auth, db, provider, storage;
         let currentUser = null;
 
         function getJSTDateStr() {
@@ -430,6 +441,7 @@
             app = initializeApp(myFirebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
+            storage = getStorage(app); // Storage初期化
             provider = new GoogleAuthProvider();
             
             document.getElementById('login-btn').onclick = async () => { 
@@ -440,16 +452,21 @@
                 }
             };
             
-            document.getElementById('logout-btn').onclick = async () => { await signOut(auth); window.projects = []; window.render(); };
+            document.getElementById('logout-btn').onclick = async () => { await signOut(auth); window.projects = []; window.isAdmin = false; window.render(); };
 
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
                 if (user) {
-                    document.getElementById('user-info').innerHTML = `👤 <span class="font-bold text-indigo-700">${user.displayName || 'ユーザー'}</span> さん`;
+                    // ★ 管理者判定
+                    window.isAdmin = ADMIN_EMAILS.includes(user.email);
+                    const adminBadge = window.isAdmin ? ' <span class="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full ml-2 border border-rose-200">管理者モード</span>' : '';
+                    
+                    document.getElementById('user-info').innerHTML = `👤 <span class="font-bold text-indigo-700">${user.displayName || 'ユーザー'}</span> さん${adminBadge}`;
                     document.getElementById('login-btn').classList.add('hidden');
                     document.getElementById('logout-btn').classList.remove('hidden');
                     setupFirestoreListener();
                 } else {
+                    window.isAdmin = false;
                     document.getElementById('user-info').innerHTML = `同期機能は未ログインです`;
                     document.getElementById('login-btn').classList.remove('hidden');
                     document.getElementById('logout-btn').classList.add('hidden');
@@ -626,7 +643,8 @@
                 peerReview: peerReview,
                 memo: memo,
                 url, location, startDate, endDate, tasks, isExpanded: true,
-                status: 'active'
+                status: 'active',
+                attachments: [] // ★ 添付ファイル配列を初期化
             };
 
             window.projects.push(newProj);
@@ -634,7 +652,6 @@
             await saveProject(newProj);
             window.toggleAddForm();
             
-            // フォームの値をリセット（すべてのタイプに対応）
             const formIds = [
                 'simConfName', 'simConfTitle', 'simConfStatus', 'simConfUrl', 'simConfLocation', 'simConfMemo', 'simConfStartDate', 'simConfEndDate',
                 'simPaperName', 'simPaperTitle', 'simPaperStatus', 'simPaperUrl', 'simPaperLocation', 'simPaperMemo', 'simPaperStartDate',
@@ -645,7 +662,6 @@
                 const el = document.getElementById(id);
                 if(el) el.value = '';
             });
-            // selectの初期値リセット
             document.getElementById('simConfFormat').value = '';
             document.getElementById('simConfPeerReview').value = '査読無';
             document.getElementById('simPaperFormat').value = '論文';
@@ -671,7 +687,8 @@
                     tasks: newTasks,
                     isExpanded: true,
                     isEditing: true,
-                    status: 'active'
+                    status: 'active',
+                    attachments: [] // コピー時は添付ファイルはリセット
                 };
 
                 window.projects.push(newProj);
@@ -783,6 +800,89 @@
             await saveProject(p);
         };
 
+        // ★★★ 新規追加：添付ファイル機能 ★★★
+        window.addAttachmentLink = async (pid) => {
+            const nameInput = document.getElementById(`attLinkName_${pid}`);
+            const urlInput = document.getElementById(`attLinkUrl_${pid}`);
+            if(!nameInput.value || !urlInput.value) return alert('表示名とURLを入力してください');
+
+            const p = window.projects.find(x => x.id === pid);
+            if(!p) return;
+
+            if(!p.attachments) p.attachments = [];
+            p.attachments.push({
+                id: 'att_' + Math.random().toString(36).substr(2, 9),
+                name: nameInput.value,
+                url: urlInput.value,
+                type: 'link'
+            });
+
+            nameInput.value = '';
+            urlInput.value = '';
+            await saveProject(p);
+            window.render();
+        };
+
+        window.uploadAttachmentFile = async (pid, inputEl) => {
+            const file = inputEl.files[0];
+            if (!file) return;
+            const p = window.projects.find(x => x.id === pid);
+            if(!p || !currentUser || !window.isAdmin) return;
+
+            const statusEl = document.getElementById(`uploadStatus_${pid}`);
+            if(statusEl) statusEl.classList.remove('hidden');
+
+            try {
+                // ファイル名の衝突を避けるためにタイムスタンプを付与
+                const uniqueName = Date.now() + '_' + file.name;
+                // Storageへの保存パス
+                const storageRef = ref(storage, `users/${currentUser.uid}/projects/${pid}/${uniqueName}`);
+                await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(storageRef);
+
+                if(!p.attachments) p.attachments = [];
+                p.attachments.push({
+                    id: 'att_' + Math.random().toString(36).substr(2, 9),
+                    name: file.name,
+                    url: downloadURL,
+                    type: 'file',
+                    storagePath: storageRef.fullPath // 削除用に保存
+                });
+                
+                await saveProject(p);
+                window.render();
+            } catch (error) {
+                console.error(error);
+                alert("アップロードに失敗しました。\nFirebaseコンソールでStorageが有効になっているか確認してください。\n" + error.message);
+            } finally {
+                if(statusEl) statusEl.classList.add('hidden');
+                inputEl.value = ''; 
+            }
+        };
+
+        window.deleteAttachment = async (pid, attId) => {
+            if(!confirm('この添付リンク/ファイルを削除しますか？')) return;
+            const p = window.projects.find(x => x.id === pid);
+            if(!p || !p.attachments) return;
+
+            const att = p.attachments.find(a => a.id === attId);
+            if(!att) return;
+
+            // ファイルの場合はStorageからも削除する（管理者のみ）
+            if (att.type === 'file' && att.storagePath && window.isAdmin) {
+                try {
+                    const fileRef = ref(storage, att.storagePath);
+                    await deleteObject(fileRef);
+                } catch(e) {
+                    console.warn("Storageのファイル削除に失敗しました", e);
+                }
+            }
+
+            p.attachments = p.attachments.filter(a => a.id !== attId);
+            await saveProject(p);
+            window.render();
+        };
+
         window.toggleProjectExpand = async (pid) => { const p = window.projects.find(x => x.id === pid); if(p){ p.isExpanded = !p.isExpanded; window.render(); await saveProject(p); } };
         window.startEdit = (id) => { const p = window.projects.find(x => x.id === id); if(p){ p.isEditing = true; p.isExpanded = true; window.render(); }};
         window.cancelEdit = (id) => { const p = window.projects.find(x => x.id === id); if(p){ p.isEditing = false; window.render(); }};
@@ -820,7 +920,29 @@
             }
         };
 
-        window.deleteProject = async (pid) => { if(confirm("完全に削除しますか？この操作は取り消せません。")){ const pIdx = window.projects.findIndex(x=>x.id===pid); if(pIdx>=0){ if(currentUser){ await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'projects', pid)); } else { window.projects.splice(pIdx,1); localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(window.projects)); window.render(); } } } };
+        window.deleteProject = async (pid) => { 
+            if(confirm("完全に削除しますか？この操作は取り消せません。")){ 
+                const pIdx = window.projects.findIndex(x=>x.id===pid); 
+                if(pIdx>=0){ 
+                    const p = window.projects[pIdx];
+                    if(currentUser){ 
+                        // Storageファイルがある場合は削除を試みる
+                        if (p.attachments && window.isAdmin) {
+                            for (const att of p.attachments) {
+                                if (att.type === 'file' && att.storagePath) {
+                                    try { await deleteObject(ref(storage, att.storagePath)); } catch(e){}
+                                }
+                            }
+                        }
+                        await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'projects', pid)); 
+                    } else { 
+                        window.projects.splice(pIdx,1); 
+                        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(window.projects)); 
+                        window.render(); 
+                    } 
+                } 
+            } 
+        };
 
         window.addReviewTasks = async function(pid) {
             if(!confirm("査読対応タスクを追加しますか？")) return;
@@ -1072,6 +1194,33 @@
                             </tbody>
                         </table>
                         
+                        <!-- ★★★ 添付ファイル・リンク エリア ★★★ -->
+                        <div class="p-3 bg-white border-t border-slate-200">
+                            <h4 class="text-sm font-bold text-slate-700 mb-2">📎 添付ファイル・リンク</h4>
+                            <ul class="mb-2 space-y-1">
+                                ${(proj.attachments || []).map(att => `
+                                    <li class="flex items-center gap-2 text-sm">
+                                        <a href="${att.url}" target="_blank" class="text-blue-600 hover:underline flex-1 truncate">${att.type==='file' ? '📄' : '🔗'} ${att.name}</a>
+                                        <button onclick="deleteAttachment('${proj.id}', '${att.id}')" class="text-slate-400 hover:text-red-500" title="削除">❌</button>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            <div class="flex flex-wrap gap-2 items-center">
+                                <input type="text" id="attLinkName_${proj.id}" placeholder="表示名 (例: 予稿Googleドライブ)" class="text-sm border rounded px-2 py-1.5 w-40">
+                                <input type="url" id="attLinkUrl_${proj.id}" placeholder="URL (https://...)" class="text-sm border rounded px-2 py-1.5 flex-1 min-w-[150px]">
+                                <button onclick="addAttachmentLink('${proj.id}')" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded font-bold whitespace-nowrap">🔗 リンク追加</button>
+                                
+                                ${window.isAdmin ? `
+                                    <div class="w-px h-4 bg-slate-300 mx-1 hidden sm:block"></div>
+                                    <label class="text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-800 px-3 py-1.5 rounded font-bold cursor-pointer flex items-center gap-1 whitespace-nowrap">
+                                        <span>⬆️ ファイルをアップロード</span>
+                                        <input type="file" id="attFile_${proj.id}" class="hidden" onchange="uploadAttachmentFile('${proj.id}', this)">
+                                    </label>
+                                ` : ''}
+                            </div>
+                            <div id="uploadStatus_${proj.id}" class="text-xs text-indigo-600 font-bold mt-1 hidden">アップロード中... しばらくお待ちください。</div>
+                        </div>
+
                         <div class="p-3 bg-slate-50 flex flex-col gap-2 border-t border-slate-300">
                             <div class="flex gap-2 items-start sm:items-center flex-col sm:flex-row">
                                 <input type="text" id="cName_${proj.id}" placeholder="タスクを追加..." class="w-full sm:flex-1 text-sm border rounded px-3 py-1.5">
