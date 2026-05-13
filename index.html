@@ -662,12 +662,26 @@
             const input = row.querySelector('.task-name-input');
             const isEditing = input.hasAttribute('readonly');
             if (isEditing) {
-                input.removeAttribute('readonly'); input.classList.add('editing-input'); input.focus(); btn.innerHTML = '✅';
+                input.removeAttribute('readonly'); 
+                input.classList.add('editing-input', 'cursor-text'); 
+                input.classList.remove('cursor-pointer', 'group-hover:text-indigo-700'); 
+                input.focus(); 
+                btn.innerHTML = '✅';
             } else {
                 const val = input.value.trim();
                 const p = window.projects.find(x => x.id === pid);
-                if(p){ const t = p.tasks.find(x => x.id === tid); if(t && t.name !== val){ t.name = val; await saveProject(p); } }
-                input.setAttribute('readonly', true); input.classList.remove('editing-input'); btn.innerHTML = '✏️';
+                if(p){ 
+                    const t = p.tasks.find(x => x.id === tid); 
+                    if(t && t.name !== val){ 
+                        t.name = val; 
+                        await saveProject(p); 
+                    } 
+                }
+                input.setAttribute('readonly', true); 
+                input.classList.remove('editing-input', 'cursor-text'); 
+                input.classList.add('cursor-pointer', 'group-hover:text-indigo-700'); 
+                btn.innerHTML = '✏️';
+                window.render();
             }
         };
 
@@ -885,20 +899,26 @@
                     <div class="${proj.isExpanded && !proj.isEditing?'block':'hidden'} border-t border-slate-100">
                         <table class="w-full text-sm sm:text-base">
                             <tbody class="divide-y divide-slate-100">
-                                ${proj.tasks.map(t => `<tr class="${t.completed?'opacity-50 bg-slate-50':''}">
-                                    <td class="p-3 w-10 text-center"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${proj.id}','${t.id}')"></td>
-                                    <td class="p-3 w-28 sm:w-36 text-xs sm:text-sm text-slate-500">${t.dueDate}</td>
-                                    <td class="p-3"><input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent outline-none ${t.completed?'line-through':''}"></td>
-                                    <td class="p-3 w-20 text-right space-x-2">
-                                        <button onclick="toggleTaskEdit('${proj.id}','${t.id}',this)">✏️</button>
-                                        <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, proj.name)}" target="_blank">📅</a>
+                                ${proj.tasks.map(t => `<tr class="${t.completed?'opacity-50 bg-slate-50':''} transition-colors">
+                                    <td class="p-3 w-12 text-center">
+                                        <input type="checkbox" ${t.completed?'checked':''} class="w-5 h-5 cursor-pointer accent-indigo-600" onchange="toggleTask('${proj.id}','${t.id}')">
+                                    </td>
+                                    <td class="p-3 w-36 text-xs sm:text-sm text-slate-500">
+                                        <input type="date" value="${t.dueDate}" onchange="updateDate('${proj.id}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[140px] transition-all ${t.completed?'opacity-50':''}">
+                                    </td>
+                                    <td class="p-3 group" onclick="if(event.target.tagName !== 'INPUT' || event.target.hasAttribute('readonly')) toggleTask('${proj.id}','${t.id}')">
+                                        <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent outline-none cursor-pointer font-medium group-hover:text-indigo-700 transition-colors ${t.completed?'line-through text-slate-400':''}">
+                                    </td>
+                                    <td class="p-3 w-24 text-right space-x-1">
+                                        <button onclick="toggleTaskEdit('${proj.id}','${t.id}',this)" class="hover:bg-slate-200 p-1.5 rounded transition" title="タスク名を編集">✏️</button>
+                                        <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, proj.name)}" target="_blank" class="hover:opacity-70 transition inline-block p-1.5" title="Googleカレンダーに追加">📅</a>
                                     </td>
                                 </tr>`).join('')}
                                 ${(() => {
                                     const allD = proj.tasks.length > 0 && proj.tasks.every(t => t.completed);
                                     return `<tr class="${allD?'bg-indigo-50 font-bold':''}">
-                                        <td class="p-4 text-center"><input type="checkbox" ${allD?'':'disabled'} onchange="if(this.checked) changeProjectStatus('${proj.id}','completed')"></td>
-                                        <td colspan="3" class="p-4">${allD ? '🏁 プロジェクト完了（確定して保管庫へ）' : '🏁 プロジェクトを完了するには全タスクにチェックを入れてください'}</td>
+                                        <td class="p-4 text-center"><input type="checkbox" ${allD?'':'disabled'} onchange="if(this.checked) changeProjectStatus('${proj.id}','completed')" class="w-5 h-5 cursor-pointer accent-indigo-600"></td>
+                                        <td colspan="3" class="p-4 text-slate-600">${allD ? '🏁 全タスク完了（ここをチェックして保管庫へ移動）' : '🏁 プロジェクトを完了するには全タスクにチェックを入れてください'}</td>
                                     </tr>`;
                                 })()}
                             </tbody>
@@ -921,12 +941,12 @@
                             <div id="uploadStatus_${proj.id}" class="text-xs text-indigo-500 font-bold mt-1 hidden">アップロード中...</div>
                         </div>
 
-                        <div class="p-3 bg-slate-50 border-t flex flex-wrap gap-2">
+                        <div class="p-3 bg-slate-50 border-t flex flex-wrap gap-2 items-center">
                             <input type="text" id="cName_${proj.id}" placeholder="新しいタスク..." class="flex-1 text-sm border rounded px-3 py-1.5 min-w-[200px]">
-                            <input type="date" id="cDate_${proj.id}" class="text-sm border rounded px-2">
+                            <input type="date" id="cDate_${proj.id}" class="text-sm border rounded px-2 p-1.5">
                             <button onclick="addCustomTask('${proj.id}')" class="bg-slate-700 text-white px-4 py-1.5 rounded text-sm font-bold">＋ 追加</button>
-                            <label class="flex items-center gap-1 text-xs text-slate-500 ml-2 cursor-pointer">
-                                <input type="checkbox" id="cRecurToggle_${proj.id}"> 定期タスク
+                            <label class="flex items-center gap-1 text-xs text-slate-500 ml-2 cursor-pointer font-bold">
+                                <input type="checkbox" id="cRecurToggle_${proj.id}" class="w-4 h-4 cursor-pointer accent-indigo-600"> 定期タスク
                             </label>
                         </div>
                     </div>
@@ -946,14 +966,19 @@
             container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden">
                 <table class="w-full text-sm sm:text-base">
                     <thead class="bg-slate-900 text-white text-xs uppercase">
-                        <tr><th class="p-3 w-10"></th><th class="p-3 w-28 sm:w-36 text-left">期日</th><th class="p-3 text-left">内容</th><th class="p-3 w-20"></th></tr>
+                        <tr><th class="p-3 w-12"></th><th class="p-3 w-36 text-left">期日</th><th class="p-3 text-left">内容</th><th class="p-3 w-20"></th></tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
-                        ${all.map(t => `<tr class="hover:bg-slate-50">
-                            <td class="p-3 text-center"><input type="checkbox" onchange="toggleTask('${t.pId}','${t.id}')"></td>
-                            <td class="p-3 text-xs sm:text-sm">${t.dueDate}</td>
-                            <td class="p-3"><div class="text-xs font-bold text-slate-400">${t.pName}</div>${t.name}</td>
-                            <td class="p-3 text-right"><a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName)}" target="_blank">📅</a></td>
+                        ${all.map(t => `<tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 text-center"><input type="checkbox" class="w-5 h-5 cursor-pointer accent-indigo-600" onchange="toggleTask('${t.pId}','${t.id}')"></td>
+                            <td class="p-3 text-xs sm:text-sm">
+                                <input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[140px] transition-all text-slate-600">
+                            </td>
+                            <td class="p-3 cursor-pointer group" onclick="toggleTask('${t.pId}','${t.id}')">
+                                <div class="text-xs font-bold text-slate-400 mb-0.5">${t.pName}</div>
+                                <div class="font-medium group-hover:text-indigo-700 transition-colors ${t.completed?'line-through text-slate-400':''}">${t.name}</div>
+                            </td>
+                            <td class="p-3 text-right"><a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName)}" target="_blank" class="text-xl hover:opacity-70 transition block text-center" title="Googleカレンダーに追加">📅</a></td>
                         </tr>`).join('')}
                     </tbody>
                 </table>
@@ -969,24 +994,24 @@
                 return `<div class="mb-6"><h4 class="font-bold border-b-2 mb-2 text-slate-700">${title}</h4>
                 <div class="space-y-2">${items.map(p => `<div class="p-2 bg-white border rounded flex justify-between items-center text-sm">
                     <div><b>${p.name}</b><br><small>${p.startDate}</small></div>
-                    <div class="space-x-3"><button onclick="changeProjectStatus('${p.id}','active')" class="text-indigo-600">復元</button><button onclick="deleteProject('${p.id}')" class="text-red-500">削除</button></div>
+                    <div class="space-x-3"><button onclick="changeProjectStatus('${p.id}','active')" class="text-indigo-600 font-bold hover:underline">復元</button><button onclick="deleteProject('${p.id}')" class="text-red-500 font-bold hover:underline">削除</button></div>
                 </div>`).join('')}</div></div>`;
             };
 
             container.innerHTML = `
-                <div class="bg-white border rounded-xl p-4 mb-6">
-                    <h3 class="font-black mb-2">業績リスト プレビュー</h3>
-                    <textarea readonly class="w-full h-32 p-2 bg-slate-50 border rounded text-xs font-mono mb-2">${window.generateAchievementText()}</textarea>
-                    <button onclick="downloadAchievement()" class="bg-slate-900 text-white px-4 py-2 rounded text-sm font-bold">テキスト保存</button>
+                <div class="bg-white border rounded-xl p-4 mb-6 shadow-sm">
+                    <h3 class="font-black mb-2 flex items-center gap-2"><span>📋</span> 業績リスト プレビュー</h3>
+                    <textarea readonly class="w-full h-32 p-3 bg-slate-50 border rounded text-xs font-mono mb-2 focus:outline-none">${window.generateAchievementText()}</textarea>
+                    <button onclick="downloadAchievement()" class="bg-slate-900 text-white px-4 py-2 rounded text-sm font-bold shadow hover:bg-slate-800 transition">テキスト保存</button>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div><h3 class="font-black mb-4">✅ 完了プロジェクト</h3>
+                    <div><h3 class="font-black mb-4 flex items-center gap-2"><span>✅</span> 完了プロジェクト</h3>
                         ${renderGroup(completed.filter(x=>x.projectType==='conference'), '学会発表')}
                         ${renderGroup(completed.filter(x=>x.projectType==='paper'), '論文投稿')}
                         ${renderGroup(completed.filter(x=>x.projectType==='grant'), '研究助成')}
                         ${renderGroup(completed.filter(x=>x.projectType==='custom'), 'その他')}
                     </div>
-                    <div><h3 class="font-black mb-4">⏸️ 保留中</h3>${renderGroup(pending, '全保留リスト')}</div>
+                    <div><h3 class="font-black mb-4 flex items-center gap-2"><span>⏸️</span> 保留中</h3>${renderGroup(pending, '全保留リスト')}</div>
                 </div>
             `;
         };
