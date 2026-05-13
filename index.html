@@ -3,194 +3,716 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教育・研究タスク管理ツール (260509-08 改正版)</title>
+    <title>Academic & Research Task Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons ライブラリの読み込み -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        
+        /* 完了時のアニメーション */
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        .project-completed {
+            border: 2px solid #22c55e;
+            animation: pulse-border 2s infinite;
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-<div id="app" class="max-w-5xl mx-auto p-4">
-    <!-- ヘッダーと達成率 -->
-    <header class="flex justify-between items-end mb-6">
-        <div>
-            <h1 class="text-2xl font-black italic tracking-tighter">TASK MANAGER</h1>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Academic & Research Management</p>
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-extrabold text-slate-900 tracking-tight italic">TASK MANAGER</h1>
+                <p class="text-xs font-semibold text-slate-400 tracking-wider">ACADEMIC & RESEARCH MANAGEMENT</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-xs text-slate-500">CURRENT PROGRESS</p>
+                    <p class="text-xl font-bold text-slate-900" id="overall-progress">0%</p>
+                </div>
+                <div id="auth-section" class="flex items-center gap-2">
+                    <!-- ログイン情報はJSで描画 -->
+                </div>
+            </div>
         </div>
-        <div class="text-right">
-            <span class="text-[10px] font-black text-slate-400 uppercase">Current Progress</span>
-            <div class="text-4xl font-black leading-none" id="total-progress">0%</div>
+        
+        <!-- Tabs -->
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="flex space-x-1 border-b border-slate-200" aria-label="Tabs">
+                <button onclick="switchTab('timeline')" id="tab-timeline" class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm text-slate-500 hover:text-slate-700 hover:border-slate-300">
+                    <i class="fa-regular fa-clock mr-2"></i>タイムライン
+                </button>
+                <button onclick="switchTab('projects')" id="tab-projects" class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm border-blue-500 text-blue-600 bg-blue-50/50">
+                    <i class="fa-regular fa-folder-open mr-2"></i>プロジェクト管理
+                </button>
+                <button onclick="switchTab('archive')" id="tab-archive" class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm text-slate-500 hover:text-slate-700 hover:border-slate-300">
+                    <i class="fa-solid fa-box-archive mr-2"></i>保管庫 <span class="hidden sm:inline">（業績出力）</span>
+                </button>
+            </nav>
         </div>
     </header>
 
-    <!-- タブメニュー -->
-    <div class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl overflow-hidden shadow-sm">
-        <button onclick="switchTab('timeline')" id="tab-timeline" class="flex-1 py-4 font-bold border-b-4 border-slate-900 bg-slate-50 transition-all">🕒 タイムライン</button>
-        <button onclick="switchTab('projects')" id="tab-projects" class="flex-1 py-4 font-bold border-b-4 border-transparent hover:bg-slate-50 transition-all">📂 プロジェクト管理</button>
-        <button onclick="switchTab('archive')" id="tab-archive" class="flex-1 py-4 font-bold border-b-4 border-transparent hover:bg-slate-50 transition-all">🗄️ 保管庫（業績出力）</button>
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+        
+        <!-- Timeline View -->
+        <div id="view-timeline" class="hidden space-y-4">
+            <div class="bg-slate-900 text-white rounded-t-lg p-4 flex text-sm font-semibold">
+                <div class="w-32">期日</div>
+                <div class="flex-1">内容</div>
+                <div class="w-24 text-center">所属プロジェクト</div>
+            </div>
+            <div id="timeline-list" class="bg-white border border-slate-200 rounded-b-lg shadow-sm -mt-4 divide-y divide-slate-100">
+                <!-- タスク一覧がここに挿入される -->
+            </div>
+        </div>
+
+        <!-- Projects View -->
+        <div id="view-projects" class="space-y-6">
+            <!-- プロジェクトカードがここに挿入される -->
+        </div>
+
+        <!-- Archive View -->
+        <div id="view-archive" class="hidden space-y-6">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex justify-between items-center mb-6">
+                <p class="text-sm text-blue-800">保管庫にある完了済みプロジェクトの情報を、業績リスト用テキストとしてクリップボードにコピーできます。</p>
+                <button onclick="copyAllAchievements()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow-sm text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-copy mr-2"></i>一括出力
+                </button>
+            </div>
+            <div id="archive-list" class="space-y-4">
+                <!-- アーカイブされたプロジェクトがここに挿入される -->
+            </div>
+        </div>
+
+        <!-- FAB (Floating Action Button) -->
+        <button onclick="openModal('project-modal')" class="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center text-2xl transition-transform hover:scale-105 z-50">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+
+    </main>
+
+    <!-- 新規プロジェクト作成モーダル -->
+    <div id="project-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-900">新規プロジェクト追加</h3>
+                <button onclick="closeModal('project-modal')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">プロジェクト名</label>
+                    <input type="text" id="new-proj-title" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="例: 第31回 留学生教育学会 年次大会">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">種類 (自動逆算の基準)</label>
+                    <select id="new-proj-type" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="conference">学会発表</option>
+                        <option value="paper">論文投稿</option>
+                        <option value="grant">研究助成申請</option>
+                        <option value="other">任意（手動設定）</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">最終〆切・目標日</label>
+                    <input type="date" id="new-proj-deadline" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="pt-4">
+                    <button onclick="createProject()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                        プロジェクトを作成
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="main-content" class="min-h-[60vh]"></div>
-</div>
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50">
+        Message
+    </div>
 
-<script>
-    // --- 開発用初期データ (実際はFirestore等から取得されます) ---
-    // 既存のデータ読み込みロジックがある場合はここを置き換えてください
-    let projects = [
-        {
-            id: 'p1',
-            name: '第31回 留学生教育学会 年次大会',
-            isArchived: false,
-            tasks: [
-                { id: 't1', text: '年会費支払い', date: '2026-05-12', completed: true, completedAt: new Date('2026-05-12').getTime() },
-                { id: 't2', text: '出張手続き（中川・横田）', date: '2026-05-14', completed: false }
-            ]
-        },
-        {
-            id: 'p2',
-            name: '日本言語政策学会',
-            isArchived: false,
-            tasks: [
-                { id: 't3', text: '発表要旨の作成', date: '2026-04-14', completed: true, completedAt: new Date('2026-04-14').getTime() },
-                { id: 't4', text: '参加申し込み', date: '2026-05-30', completed: false }
-            ]
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, onSnapshot, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'academic-task-mgr-dev';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            projectId: "dummy-project-id" // モック用
+        };
+
+        let app, db, auth;
+        let currentUser = null;
+        let isAdmin = false;
+
+        // データステート
+        let projects = [];
+        let tasks = [];
+        let attachments = [];
+        let currentTab = 'projects';
+
+        // 管理者メールアドレスの定義（デモ用）
+        const ADMIN_EMAIL = 'admin@example.com';
+
+        // Initialize Firebase (環境依存の処理をモック化できるようにtry-catch)
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            initAuth();
+        } catch (e) {
+            console.error("Firebase init failed, using local mock data.", e);
+            // モックデータでの起動
+            setupMockData();
+            renderApp();
         }
-    ];
 
-    // --- 達成率計算 (保管庫除外) ---
-    function updateProgress() {
-        const activeProjects = projects.filter(p => !p.isArchived);
-        let total = 0, done = 0;
-        activeProjects.forEach(p => {
-            p.tasks.forEach(t => { total++; if (t.completed) done++; });
-        });
-        const percent = total === 0 ? 0 : Math.round((done / total) * 100);
-        document.getElementById('total-progress').innerText = `${percent}%`;
-    }
-
-    // --- タイムライン描画 (昨日以前の完了タスク非表示) ---
-    function renderTimeline() {
-        const container = document.getElementById('main-content');
-        const now = new Date();
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-
-        let allActiveTasks = [];
-        projects.filter(p => !p.isArchived).forEach(p => {
-            p.tasks.forEach(t => {
-                // 昨日以前に完了したタスクは除外
-                if (t.completed && t.completedAt && t.completedAt < todayStart) return;
-                allActiveTasks.push({ ...t, projectName: p.name });
+        async function initAuth() {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    // デモ用の管理者判定: メールアドレスが特定のもの、またはUIDで判定。
+                    // 今回はテストしやすいように、メールアドレス情報をモックで注入できる想定。
+                    isAdmin = (user.email === ADMIN_EMAIL) || user.isAnonymous === false; // 便宜上、匿名以外を管理者扱いにする等の工夫も可
+                    
+                    // UIの更新
+                    updateAuthUI();
+                    // データのロード
+                    loadDataFromFirestore();
+                } else {
+                    currentUser = null;
+                    isAdmin = false;
+                    const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (token) {
+                        signInWithCustomToken(auth, token).catch(console.error);
+                    } else {
+                        signInAnonymously(auth).catch(console.error);
+                    }
+                }
             });
-        });
+        }
 
-        allActiveTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        container.innerHTML = `
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-slate-900 text-white text-[10px] uppercase tracking-widest">
-                        <tr>
-                            <th class="p-4 w-32">期日</th>
-                            <th class="p-4">内容</th>
-                            <th class="p-4 w-12 text-center">転記</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        ${allActiveTasks.map(t => `
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="p-4 whitespace-nowrap">
-                                    <div class="flex items-center gap-2 font-mono text-sm">
-                                        <span class="${t.completed ? 'text-slate-300' : ''}">${t.date}</span>
-                                        <!-- 期日変更用のカレンダーアイコン -->
-                                        <i data-lucide="calendar" class="w-4 h-4 text-blue-500 cursor-pointer hover:scale-110 transition-transform" onclick="openDatePicker('${t.id}')"></i>
-                                    </div>
-                                </td>
-                                <td class="p-4">
-                                    <div class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">${t.projectName}</div>
-                                    <div class="${t.completed ? 'line-through text-slate-300' : 'font-bold'} text-sm">${t.text}</div>
-                                </td>
-                                <td class="p-4 text-center">
-                                    <!-- Googleカレンダー転記用の外部リンクアイコン -->
-                                    <i data-lucide="external-link" class="w-4 h-4 text-slate-300 cursor-pointer hover:text-blue-600 transition-colors" onclick="syncToCalendar('${t.id}')"></i>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-        // アイコンの描画実行
-        lucide.createIcons();
-    }
-
-    // --- プロジェクト別表示 ---
-    function renderProjects() {
-        const container = document.getElementById('main-content');
-        const activeProjects = projects.filter(p => !p.isArchived);
-        const now = new Date();
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-
-        container.innerHTML = activeProjects.map(p => {
-            // プロジェクト内でも昨日以前の完了タスクを非表示にする
-            const visibleTasks = p.tasks.filter(t => !(t.completed && t.completedAt && t.completedAt < todayStart));
-            const progress = p.tasks.length === 0 ? 0 : Math.round((p.tasks.filter(t => t.completed).length / p.tasks.length) * 100);
-
-            return `
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <h2 class="font-black text-lg">${p.name}</h2>
-                        <span class="text-xs font-bold bg-slate-100 px-2 py-1 rounded">${progress}%</span>
+        function updateAuthUI() {
+            const authSection = document.getElementById('auth-section');
+            if (currentUser) {
+                const badgeClass = isAdmin ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-slate-100 text-slate-800 border-slate-200';
+                const roleText = isAdmin ? '管理者(ファイルUP可)' : '一般(リンクのみ)';
+                authSection.innerHTML = `
+                    <div class="text-xs border ${badgeClass} px-2 py-1 rounded-full font-medium">
+                        <i class="fa-solid ${isAdmin ? 'fa-user-shield' : 'fa-user'} mr-1"></i>${roleText}
                     </div>
-                    <div class="space-y-3">
-                        ${visibleTasks.map(t => `
-                            <div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded group">
-                                <div class="flex items-center gap-3">
-                                    <input type="checkbox" ${t.completed ? 'checked' : ''} class="w-4 h-4 rounded border-slate-300">
-                                    <span class="${t.completed ? 'line-through text-slate-300' : 'font-bold'} text-sm">${t.text}</span>
+                `;
+            }
+        }
+
+        function getCollectionPath(colName) {
+            if (!currentUser) return null;
+            // RULE 1に従う
+            return collection(db, 'artifacts', appId, 'users', currentUser.uid, colName);
+        }
+
+        async function loadDataFromFirestore() {
+            if (!currentUser) return;
+            try {
+                // RULE 2: Complex Queryは避ける。全件取得してJSでフィルタ
+                const pRef = getCollectionPath('projects');
+                const tRef = getCollectionPath('tasks');
+                const aRef = getCollectionPath('attachments');
+
+                // Projects Listener
+                onSnapshot(pRef, (snapshot) => {
+                    projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderApp();
+                }, (error) => console.error(error));
+
+                // Tasks Listener
+                onSnapshot(tRef, (snapshot) => {
+                    tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderApp();
+                }, (error) => console.error(error));
+
+                // Attachments Listener
+                onSnapshot(aRef, (snapshot) => {
+                    attachments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderApp();
+                }, (error) => console.error(error));
+
+            } catch (e) {
+                console.error("Error loading data:", e);
+                showToast("データ読み込みエラー");
+            }
+        }
+
+        // 日付操作ヘルパー
+        function addDays(dateStr, days) {
+            const date = new Date(dateStr);
+            date.setDate(date.getDate() + days);
+            return date.toISOString().split('T')[0];
+        }
+
+        window.createProject = async function() {
+            if (!currentUser && !db) { showToast("ローカル環境では追加できません"); return; }
+            
+            const title = document.getElementById('new-proj-title').value;
+            const type = document.getElementById('new-proj-type').value;
+            const deadline = document.getElementById('new-proj-deadline').value;
+
+            if (!title || !deadline) {
+                alert("プロジェクト名と期日を入力してください。");
+                return;
+            }
+
+            const projectId = crypto.randomUUID();
+            const projectData = {
+                title,
+                type,
+                deadline,
+                status: 'active', // active or archived
+                createdAt: new Date().toISOString()
+            };
+
+            // 自動逆算タスクの生成
+            const generatedTasks = generateTasksForType(projectId, type, deadline);
+
+            try {
+                if (db && currentUser) {
+                    const batch = writeBatch(db);
+                    
+                    // プロジェクト保存
+                    const pRef = doc(getCollectionPath('projects'), projectId);
+                    batch.set(pRef, projectData);
+
+                    // タスク保存
+                    generatedTasks.forEach(task => {
+                        const tRef = doc(getCollectionPath('tasks'), task.id);
+                        batch.set(tRef, task);
+                    });
+
+                    await batch.commit();
+                } else {
+                    // Mock fallback
+                    projects.push({id: projectId, ...projectData});
+                    tasks = [...tasks, ...generatedTasks];
+                    renderApp();
+                }
+                
+                closeModal('project-modal');
+                document.getElementById('new-proj-title').value = '';
+                showToast("プロジェクトとタスクを作成しました");
+            } catch (e) {
+                console.error("Error creating project:", e);
+                showToast("作成に失敗しました");
+            }
+        };
+
+        function generateTasksForType(projectId, type, deadline) {
+            const newTasks = [];
+            const createT = (title, daysBefore) => ({
+                id: crypto.randomUUID(),
+                projectId,
+                title,
+                dueDate: addDays(deadline, -daysBefore),
+                completed: false
+            });
+
+            if (type === 'conference') {
+                newTasks.push(createT("抄録提出（要項確認）", 60));
+                newTasks.push(createT("参加登録・出張手続き", 30));
+                newTasks.push(createT("発表スライド・ポスター作成", 7));
+                newTasks.push(createT("学会当日", 0));
+            } else if (type === 'paper') {
+                newTasks.push(createT("研究計画・骨子作成", 90));
+                newTasks.push(createT("データ収集・分析完了", 60));
+                newTasks.push(createT("初稿完成・共著者レビュー", 30));
+                newTasks.push(createT("最終稿提出", 0));
+            } else if (type === 'grant') {
+                newTasks.push(createT("公募要領確認・申請書ドラフト", 60));
+                newTasks.push(createT("学内事務局レビュー", 14));
+                newTasks.push(createT("最終提出", 0));
+            } else {
+                newTasks.push(createT("最終期日", 0));
+            }
+            return newTasks;
+        }
+
+        window.toggleTask = async function(taskId, currentState) {
+            if (db && currentUser) {
+                const tRef = doc(getCollectionPath('tasks'), taskId);
+                await updateDoc(tRef, { completed: !currentState });
+            } else {
+                const task = tasks.find(t => t.id === taskId);
+                if(task) task.completed = !currentState;
+                renderApp();
+            }
+        };
+
+        window.archiveProject = async function(projectId) {
+            // 保管庫へ移動
+            if (db && currentUser) {
+                const pRef = doc(getCollectionPath('projects'), projectId);
+                await updateDoc(pRef, { status: 'archived' });
+            } else {
+                const proj = projects.find(p => p.id === projectId);
+                if(proj) proj.status = 'archived';
+                renderApp();
+            }
+            showToast("保管庫へ移動しました");
+        };
+
+        window.addAttachment = async function(projectId) {
+            const url = prompt("リンクURLを入力してください:");
+            if (!url) return;
+            const name = prompt("リンクの表示名を入力してください:") || "参考リンク";
+
+            const attData = {
+                id: crypto.randomUUID(),
+                projectId,
+                type: 'link',
+                url,
+                name
+            };
+
+            if (db && currentUser) {
+                const aRef = doc(getCollectionPath('attachments'), attData.id);
+                await setDoc(aRef, attData);
+            } else {
+                attachments.push(attData);
+                renderApp();
+            }
+        };
+
+        window.uploadFileMock = function(projectId) {
+            // 本来はFirebase Storageにアップロードする処理。
+            // 今回は管理者のみ表示されるUIからのダミーアクションとして実装。
+            alert("管理者機能: ファイルのアップロードダイアログが開きます（デモ）");
+        }
+
+        window.copyAllAchievements = function() {
+            const archived = projects.filter(p => p.status === 'archived');
+            if (archived.length === 0) {
+                showToast("出力する業績がありません");
+                return;
+            }
+            let text = "【業績・活動記録】\n";
+            archived.forEach(p => {
+                text += `・${p.deadline.substring(0,4)}年: ${p.title} (${getTypeLabel(p.type)})\n`;
+            });
+
+            // クリップボードにコピー
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast("クリップボードにコピーしました");
+            } catch (err) {
+                showToast("コピーに失敗しました");
+            }
+            document.body.removeChild(textArea);
+        };
+
+        function renderApp() {
+            renderOverallProgress();
+            
+            document.getElementById('view-timeline').classList.add('hidden');
+            document.getElementById('view-projects').classList.add('hidden');
+            document.getElementById('view-archive').classList.add('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600', 'bg-blue-50/50');
+                btn.classList.add('text-slate-500', 'hover:border-slate-300');
+            });
+
+            if (currentTab === 'timeline') {
+                document.getElementById('view-timeline').classList.remove('hidden');
+                document.getElementById('tab-timeline').classList.add('border-blue-500', 'text-blue-600', 'bg-blue-50/50');
+                document.getElementById('tab-timeline').classList.remove('text-slate-500');
+                renderTimeline();
+            } else if (currentTab === 'projects') {
+                document.getElementById('view-projects').classList.remove('hidden');
+                document.getElementById('tab-projects').classList.add('border-blue-500', 'text-blue-600', 'bg-blue-50/50');
+                document.getElementById('tab-projects').classList.remove('text-slate-500');
+                renderProjects();
+            } else if (currentTab === 'archive') {
+                document.getElementById('view-archive').classList.remove('hidden');
+                document.getElementById('tab-archive').classList.add('border-blue-500', 'text-blue-600', 'bg-blue-50/50');
+                document.getElementById('tab-archive').classList.remove('text-slate-500');
+                renderArchive();
+            }
+        }
+
+        window.switchTab = function(tab) {
+            currentTab = tab;
+            renderApp();
+        };
+
+        function renderOverallProgress() {
+            const activeProjects = projects.filter(p => p.status === 'active');
+            if (activeProjects.length === 0) {
+                document.getElementById('overall-progress').innerText = "0%";
+                return;
+            }
+            
+            let totalTasks = 0;
+            let completedTasks = 0;
+            activeProjects.forEach(p => {
+                const pTasks = tasks.filter(t => t.projectId === p.id);
+                totalTasks += pTasks.length;
+                completedTasks += pTasks.filter(t => t.completed).length;
+            });
+
+            const percent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+            document.getElementById('overall-progress').innerText = `${percent}%`;
+        }
+
+        function renderProjects() {
+            const container = document.getElementById('view-projects');
+            const activeProjects = projects.filter(p => p.status === 'active');
+            
+            if (activeProjects.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-slate-400">
+                    <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
+                    <p>進行中のプロジェクトはありません。</p>
+                    <p class="text-sm">右下の「＋」ボタンから追加してください。</p>
+                </div>`;
+                return;
+            }
+
+            let html = '';
+            activeProjects.forEach(proj => {
+                const projTasks = tasks.filter(t => t.projectId === proj.id).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+                const projAtts = attachments.filter(a => a.projectId === proj.id);
+                
+                const total = projTasks.length;
+                const completed = projTasks.filter(t => t.completed).length;
+                const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+                const isAllCompleted = total > 0 && total === completed;
+
+                // 完了状態に応じたスタイリング
+                const cardClass = isAllCompleted ? "bg-white border rounded-xl shadow-sm overflow-hidden project-completed relative" : "bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden relative";
+
+                html += `
+                    <div class="${cardClass}">
+                        ${isAllCompleted ? '<div class="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10"><i class="fa-solid fa-check mr-1"></i>完了可能</div>' : ''}
+                        
+                        <!-- Header -->
+                        <div class="p-5 border-b border-slate-100 flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${getTypeBadgeColor(proj.type)}">${getTypeLabel(proj.type)}</span>
+                                    <span class="text-sm text-slate-500"><i class="fa-regular fa-calendar mr-1"></i>〆切: ${proj.deadline}</span>
                                 </div>
-                                <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <span class="text-[10px] font-mono text-slate-400">${t.date}</span>
-                                    <i data-lucide="calendar" class="w-4 h-4 text-blue-500 cursor-pointer" onclick="openDatePicker('${t.id}')"></i>
-                                    <i data-lucide="trash-2" class="w-4 h-4 text-slate-300 cursor-pointer hover:text-red-500"></i>
+                                <h2 class="text-xl font-bold text-slate-900">${proj.title}</h2>
+                            </div>
+                            <div class="text-right ml-4">
+                                <span class="text-2xl font-black ${isAllCompleted ? 'text-green-500' : 'text-slate-700'}">${progress}%</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-slate-100 h-1.5">
+                            <div class="bg-${isAllCompleted ? 'green' : 'blue'}-600 h-1.5 transition-all duration-500" style="width: ${progress}%"></div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            
+                            <!-- Tasks Area -->
+                            <div class="md:col-span-2 space-y-3">
+                                <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Tasks</h3>
+                                ${projTasks.map(t => `
+                                    <label class="flex items-start gap-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group">
+                                        <div class="pt-0.5">
+                                            <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask('${t.id}', ${t.completed})"
+                                                class="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="${t.completed ? 'text-slate-400 line-through' : 'text-slate-800 font-medium'}">${t.title}</p>
+                                            <p class="text-xs ${t.completed ? 'text-slate-300' : 'text-slate-500'}"><i class="fa-regular fa-clock mr-1"></i>${t.dueDate}</p>
+                                        </div>
+                                    </label>
+                                `).join('')}
+                            </div>
+
+                            <!-- Attachments Area -->
+                            <div class="space-y-3 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
+                                <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Attachments</h3>
+                                
+                                <div class="space-y-2 mb-3">
+                                    ${projAtts.length === 0 ? '<p class="text-sm text-slate-400 italic">添付はありません</p>' : ''}
+                                    ${projAtts.map(a => `
+                                        <a href="${a.url}" target="_blank" class="block flex items-center gap-2 text-sm p-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-slate-700 transition-colors truncate">
+                                            <i class="fa-solid ${a.type === 'link' ? 'fa-link text-blue-500' : 'fa-file text-slate-400'}"></i>
+                                            ${a.name}
+                                        </a>
+                                    `).join('')}
+                                </div>
+
+                                <!-- Add Attachment Buttons (管理者権限で出し分け) -->
+                                <div class="flex flex-col gap-2">
+                                    <button onclick="addAttachment('${proj.id}')" class="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded text-left transition-colors">
+                                        <i class="fa-solid fa-plus mr-1"></i> リンクを追加
+                                    </button>
+                                    ${isAdmin ? `
+                                    <button onclick="uploadFileMock('${proj.id}')" class="text-xs text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-2 rounded text-left transition-colors">
+                                        <i class="fa-solid fa-cloud-arrow-up mr-1"></i> ファイルをアップロード (管理者用)
+                                    </button>
+                                    ` : ''}
                                 </div>
                             </div>
-                        `).join('')}
+                        </div>
+
+                        <!-- 🏁 プロジェクト完了導線 (100%時のみ出現) -->
+                        ${isAllCompleted ? `
+                        <div class="bg-green-50 border-t border-green-200 p-4 flex justify-between items-center animate-fade-in">
+                            <p class="text-green-800 font-medium"><i class="fa-solid fa-party-horn mr-2"></i>すべてのタスクが完了しました！</p>
+                            <button onclick="archiveProject('${proj.id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition-colors flex items-center">
+                                <i class="fa-solid fa-flag-checkered mr-2"></i>保管庫へ移動
+                            </button>
+                        </div>
+                        ` : ''}
                     </div>
-                </div>
-            `;
-        }).join('');
-        lucide.createIcons();
-    }
-
-    // --- タブ切り替え ---
-    function switchTab(tab) {
-        const buttons = document.querySelectorAll('button[id^="tab-"]');
-        buttons.forEach(b => {
-            b.classList.remove('border-slate-900', 'bg-slate-50');
-            b.classList.add('border-transparent');
-        });
-        document.getElementById(`tab-${tab}`).classList.add('border-slate-900', 'bg-slate-50');
-        
-        if (tab === 'timeline') renderTimeline();
-        if (tab === 'projects') renderProjects();
-        if (tab === 'archive') {
-            document.getElementById('main-content').innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">保管庫（開発中：業績テキスト出力機能）</div>';
+                `;
+            });
+            container.innerHTML = html;
         }
-    }
 
-    // --- ダミー関数 (実環境の関数を呼ぶようにしてください) ---
-    function openDatePicker(id) { alert('期日変更ダイアログを表示: ' + id); }
-    function syncToCalendar(id) { alert('Googleカレンダーに転記します: ' + id); }
+        function renderTimeline() {
+            const container = document.getElementById('timeline-list');
+            
+            // 全アクティブプロジェクトのタスクを集約して期日順ソート
+            let allTasks = [];
+            projects.filter(p => p.status === 'active').forEach(p => {
+                const pTasks = tasks.filter(t => t.projectId === p.id && !t.completed); // 未完了のみ表示
+                pTasks.forEach(t => {
+                    allTasks.push({ ...t, projectName: p.title, projectType: p.type });
+                });
+            });
 
-    // 初期起動
-    window.onload = () => {
-        updateProgress();
-        renderTimeline();
-    };
-</script>
+            allTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+            if (allTasks.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-400">直近のタスクはありません。</div>`;
+                return;
+            }
+
+            let html = '';
+            allTasks.forEach(t => {
+                const isOverdue = new Date(t.dueDate) < new Date() && !t.completed;
+                const dateColor = isOverdue ? 'text-red-500 font-bold' : 'text-slate-600';
+                
+                html += `
+                    <div class="p-4 flex items-center hover:bg-slate-50 transition-colors">
+                        <div class="w-32 text-sm ${dateColor} flex items-center">
+                            <i class="fa-regular fa-calendar mr-2"></i>${t.dueDate}
+                        </div>
+                        <div class="flex-1 flex items-center gap-3 pr-4">
+                            <button onclick="toggleTask('${t.id}', false)" class="text-slate-300 hover:text-green-500 transition-colors">
+                                <i class="fa-regular fa-circle-check text-xl"></i>
+                            </button>
+                            <span class="font-medium text-slate-800">${t.title}</span>
+                        </div>
+                        <div class="w-48 text-right text-xs text-slate-500 truncate" title="${t.projectName}">
+                            <span class="px-2 py-1 bg-slate-100 rounded mr-1">${getTypeLabel(t.projectType)}</span>
+                            ${t.projectName}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderArchive() {
+            const container = document.getElementById('archive-list');
+            const archived = projects.filter(p => p.status === 'archived');
+
+            if (archived.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-slate-400">完了したプロジェクトはありません。</div>`;
+                return;
+            }
+
+            let html = '';
+            archived.forEach(proj => {
+                html += `
+                    <div class="bg-white border border-slate-200 rounded-lg p-4 flex items-center justify-between opacity-80 hover:opacity-100 transition-opacity">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-slate-100 text-slate-400 w-10 h-10 rounded-full flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 line-through decoration-slate-300">${proj.title}</h3>
+                                <p class="text-xs text-slate-500">完了目標日: ${proj.deadline} | ${getTypeLabel(proj.type)}</p>
+                            </div>
+                        </div>
+                        <div class="text-slate-300">
+                            <i class="fa-solid fa-award text-2xl"></i>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function getTypeLabel(type) {
+            const map = { 'conference': '学会発表', 'paper': '論文投稿', 'grant': '助成金申請', 'other': '任意' };
+            return map[type] || 'その他';
+        }
+        function getTypeBadgeColor(type) {
+            const map = {
+                'conference': 'bg-blue-100 text-blue-800',
+                'paper': 'bg-purple-100 text-purple-800',
+                'grant': 'bg-amber-100 text-amber-800',
+                'other': 'bg-slate-100 text-slate-800'
+            };
+            return map[type] || map['other'];
+        }
+
+        // UI Utilities
+        window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
+        window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // Initial setup for mock data (if firebase fails)
+        function setupMockData() {
+            currentUser = { uid: 'mock-user', email: 'user@test.com', isAnonymous: true };
+            isAdmin = false; // モックテスト用にtrueにしてもOK
+            
+            projects = [
+                { id: 'p1', title: '第31回 留学生教育学会 年次大会', type: 'conference', deadline: '2026-05-14', status: 'active', createdAt: new Date().toISOString() },
+                { id: 'p2', title: '日本言語政策学会', type: 'conference', deadline: '2026-05-30', status: 'active', createdAt: new Date().toISOString() }
+            ];
+            
+            tasks = [
+                { id: 't1', projectId: 'p1', title: '出張手続き（中川・横田）', dueDate: '2026-05-01', completed: false },
+                { id: 't2', projectId: 'p1', title: '発表スライド作成', dueDate: '2026-05-07', completed: false },
+                { id: 't3', projectId: 'p2', title: '参加申し込み', dueDate: '2026-05-15', completed: false }
+            ];
+            
+            attachments = [
+                { id: 'a1', projectId: 'p1', type: 'link', url: 'https://example.com', name: '学会公式ページ' }
+            ];
+            updateAuthUI();
+        }
+
+    </script>
 </body>
 </html>
