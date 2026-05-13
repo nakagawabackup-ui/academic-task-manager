@@ -990,9 +990,8 @@
                     </div>
                     <div><h3 class="font-black mb-4">⏸️ 保留中</h3>${renderGroup(pending, '全保留リスト')}</div>
                 </div>
-                // 993行目の ` ; の直後に追加
-lucide.createIcons();
-            `;
+            `;  // ← まずここでバッククォートとセミコロンでHTML文字列を閉じる
+             lucide.createIcons();
         };
     </script>
 </body>
