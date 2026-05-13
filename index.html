@@ -8,51 +8,63 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans JP', sans-serif; background: #f8fafc; }
-        .tab-active { border-bottom: 4px solid #0f172a; color: #0f172a; font-weight: 900; background-color: white; }
-        .tab-inactive { border-bottom: 4px solid transparent; color: #64748b; font-weight: 500; }
+        .tab-active { 
+            background-color: white; 
+            color: #0f172a; 
+            font-weight: 900; 
+            border-top-left-radius: 0.5rem; 
+            border-top-right-radius: 0.5rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+            position: relative;
+        }
+        .tab-active::after {
+            content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px; background: white;
+        }
+        .tab-inactive { color: #64748b; font-weight: 500; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
+        .tab-inactive:hover { background-color: #f1f5f9; color: #334155; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .editing-input { background: white !important; border: 1px solid #cbd5e1 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
-        .filter-btn-active { background-color: #0f172a; color: white; }
-        .filter-btn-inactive { background-color: #e2e8f0; color: #64748b; }
     </style>
 </head>
 <body class="p-4 md:p-8">
     <div class="max-w-6xl mx-auto">
-        <header class="mb-8 border-l-8 border-indigo-800 pl-6 flex flex-col md:flex-row justify-between items-start gap-4">
-            <div class="flex-1 w-full">
-                <h1 class="text-2xl md:text-3xl font-black text-slate-900 flex flex-wrap items-center gap-3">
+        <header class="mb-8 flex flex-col lg:flex-row justify-between items-start gap-4">
+            <div class="flex-1 w-full border-l-8 border-indigo-800 pl-6">
+                <h1 class="text-2xl md:text-3xl font-black text-slate-900 flex flex-wrap items-center gap-3 tracking-tight">
                     日本語教育・研究活動スケジュール管理
                     <span id="sync-status"></span>
                 </h1>
                 <p class="text-slate-500 mt-2 font-medium text-sm md:text-base">学会・論文・研究助成、および管理運営業務タスクを統合管理します。</p>
                 
-                <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 md:p-4 inline-block w-full max-w-3xl shadow-sm">
+                <div class="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-3 md:p-4 inline-block w-full max-w-2xl shadow-sm">
                     <a href="https://nihongo-gakkai.netlify.app/" target="_blank" class="group flex items-center gap-2 text-blue-800 font-bold text-sm md:text-base mb-1 w-fit">
-                        <span class="text-xl">🔍</span> 
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         <span class="group-hover:underline decoration-2 underline-offset-2 transition-all">学会発表情報ファインダー</span>
                         <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1 transition group-hover:bg-blue-200">別ツール連携</span>
                     </a>
-                    <p class="text-xs md:text-sm text-blue-700/80 pl-7 leading-relaxed">
+                    <p class="text-xs text-blue-700/80 pl-7 leading-relaxed">
                         日本語教育及び関連分野の主要13学会について、開催日時・会場・発表種目・発表資格・参加費・申込期限を一覧できます。
                     </p>
                 </div>
             </div>
-            <div class="flex flex-col items-end gap-2 shrink-0">
-                <div id="auth-container" class="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 text-base flex flex-wrap items-center gap-3">
-                    <span id="user-info" class="text-slate-600 font-bold">起動中...</span>
+            
+            <div class="flex flex-col items-end gap-2 shrink-0 w-full lg:w-auto mt-4 lg:mt-0">
+                <div id="auth-container" class="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 text-sm flex flex-wrap justify-end items-center gap-3 w-full lg:w-auto">
+                    <span id="user-info" class="text-slate-600 font-bold flex items-center gap-2">起動中...</span>
                     
-                    <!-- ★ ワンクリックでアップロード機能をONにするテストボタン -->
-                    <button id="test-admin-btn" onclick="activateTestAdmin()" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded text-sm font-bold border border-rose-200 hover:bg-rose-100 transition shadow-sm" title="実際のログインなしで管理者機能(ファイルUP)をテストします">
-                        🛠️ 管理者としてテスト
+                    <button id="test-admin-btn" onclick="activateTestAdmin()" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded flex items-center gap-1 text-xs font-bold border border-rose-200 hover:bg-rose-100 transition shadow-sm" title="実際のログインなしで管理者機能(ファイルUP)をテストします">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 00-1-1H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 001-1v-1z"></path></svg>
+                        管理者としてテスト
                     </button>
 
-                    <button id="login-btn" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-indigo-700 transition shadow hidden">Googleでログイン</button>
-                    <button id="logout-btn" class="bg-slate-100 text-slate-600 px-4 py-2 rounded text-sm font-bold hover:bg-slate-200 transition border border-slate-200 hidden">ログアウト</button>
+                    <button id="login-btn" class="bg-indigo-600 text-white px-4 py-1.5 rounded text-sm font-bold hover:bg-indigo-700 transition shadow hidden">Googleでログイン</button>
+                    <button id="logout-btn" class="bg-slate-50 text-slate-600 px-4 py-1.5 rounded text-sm font-bold hover:bg-slate-100 transition border border-slate-200 hidden">ログアウト</button>
                 </div>
-                <div id="overview-stats" class="text-right text-base text-slate-600 font-bold bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 hidden md:block">
+                <div id="overview-stats" class="text-right text-sm text-slate-600 font-bold bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 hidden md:block w-full lg:w-auto">
+                    <!-- stats injected here -->
                 </div>
             </div>
         </header>
@@ -60,42 +72,43 @@
         <div id="error-display" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-bold whitespace-pre-wrap"></div>
 
         <div class="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl mb-8 shadow-sm">
-            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 cursor-pointer select-none mb-4" onclick="toggleAddForm()">
-                <span class="text-indigo-600 text-lg">➕</span> 新しい予定を追加
-                <span id="add-form-icon" class="text-slate-400 text-sm ml-auto">▼</span>
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 cursor-pointer select-none" onclick="toggleAddForm()">
+                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                新しい予定を追加
+                <svg id="add-form-icon" class="w-5 h-5 text-slate-400 ml-auto transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </h2>
-            <div id="add-project-form" class="hidden mt-4">
+            <div id="add-project-form" class="hidden mt-6 border-t pt-6">
                 <div class="flex flex-wrap gap-4 md:gap-6 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <label class="flex items-center gap-2 font-bold text-base cursor-pointer text-blue-800">
-                        <input type="radio" name="projType" value="conference" checked onchange="toggleFormMode()" class="w-5 h-5 text-blue-600">
+                    <label class="flex items-center gap-2 font-bold text-sm cursor-pointer text-blue-800">
+                        <input type="radio" name="projType" value="conference" checked onchange="toggleFormMode()" class="w-4 h-4 text-blue-600 accent-blue-600">
                         🎤 学会発表
                     </label>
-                    <label class="flex items-center gap-2 font-bold text-base cursor-pointer text-rose-800">
-                        <input type="radio" name="projType" value="paper" onchange="toggleFormMode()" class="w-5 h-5 text-rose-600">
+                    <label class="flex items-center gap-2 font-bold text-sm cursor-pointer text-rose-800">
+                        <input type="radio" name="projType" value="paper" onchange="toggleFormMode()" class="w-4 h-4 text-rose-600 accent-rose-600">
                         📄 論文投稿
                     </label>
-                    <label class="flex items-center gap-2 font-bold text-base cursor-pointer text-emerald-800">
-                        <input type="radio" name="projType" value="grant" onchange="toggleFormMode()" class="w-5 h-5 text-emerald-600">
+                    <label class="flex items-center gap-2 font-bold text-sm cursor-pointer text-emerald-800">
+                        <input type="radio" name="projType" value="grant" onchange="toggleFormMode()" class="w-4 h-4 text-emerald-600 accent-emerald-600">
                         💰 研究助成申請
                     </label>
-                    <label class="flex items-center gap-2 font-bold text-base cursor-pointer text-purple-800">
-                        <input type="radio" name="projType" value="custom" onchange="toggleFormMode()" class="w-5 h-5 text-purple-600">
+                    <label class="flex items-center gap-2 font-bold text-sm cursor-pointer text-purple-800">
+                        <input type="radio" name="projType" value="custom" onchange="toggleFormMode()" class="w-4 h-4 text-purple-600 accent-purple-600">
                         🗂️ 任意のプロジェクト
                     </label>
                 </div>
 
                 <div id="form-conference" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div class="lg:col-span-1">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">学会・大会名 <span class="text-red-500">*</span></label>
-                        <input type="text" id="simConfName" placeholder="例: 日本語教育学会 2026春季" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">学会・大会名 <span class="text-red-500">*</span></label>
+                        <input type="text" id="simConfName" placeholder="例: 日本語教育学会 2026春季" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">発表タイトル</label>
-                        <input type="text" id="simConfTitle" placeholder="例: 〇〇に関する考察" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">発表タイトル</label>
+                        <input type="text" id="simConfTitle" placeholder="例: 〇〇に関する考察" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-500 mb-1">発表形式</label>
-                        <select id="simConfFormat" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">発表形式</label>
+                        <select id="simConfFormat" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500">
                             <option value="">未定 / 選択なし</option>
                             <option value="口頭発表">口頭発表</option>
                             <option value="ポスター発表">ポスター発表</option>
@@ -106,52 +119,52 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-500 mb-1">発表者</label>
-                        <input type="text" id="simConfStatus" placeholder="例: 中川健司・田中太郎" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">発表者</label>
+                        <input type="text" id="simConfStatus" placeholder="例: 中川健司・田中太郎" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-500 mb-1">査読の有無</label>
-                        <select id="simConfPeerReview" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">査読の有無</label>
+                        <select id="simConfPeerReview" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500">
                             <option value="査読有">査読有</option>
                             <option value="査読無" selected>査読無</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-500 mb-1">公式サイトURL</label>
-                        <input type="url" id="simConfUrl" placeholder="https://..." class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">公式サイトURL</label>
+                        <input type="url" id="simConfUrl" placeholder="https://..." class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-500 mb-1">開催地</label>
-                        <input type="text" id="simConfLocation" placeholder="オンライン, 東京など" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">開催地</label>
+                        <input type="text" id="simConfLocation" placeholder="オンライン, 東京など" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">メモ（自由記述）</label>
-                        <textarea id="simConfMemo" placeholder="共同研究者への連絡事項、旅費の予算など自由にメモできます" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" rows="2"></textarea>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">メモ（自由記述）</label>
+                        <textarea id="simConfMemo" placeholder="共同研究者への連絡事項、旅費の予算など自由にメモできます" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" rows="2"></textarea>
                     </div>
                     <div class="flex gap-2 lg:col-span-2">
                         <div class="w-1/2">
-                            <label class="block text-sm font-bold text-slate-500 mb-1">実施日（期日） <span class="text-red-500">*</span></label>
-                            <input type="date" id="simConfStartDate" onchange="syncEndDate()" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">実施日（期日） <span class="text-red-500">*</span></label>
+                            <input type="date" id="simConfStartDate" onchange="syncEndDate()" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div class="w-1/2">
-                            <label class="block text-sm font-bold text-slate-500 mb-1">終了日</label>
-                            <input type="date" id="simConfEndDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">終了日</label>
+                            <input type="date" id="simConfEndDate" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                     </div>
                 </div>
 
                 <div id="form-paper" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div class="lg:col-span-1">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">投稿先（学会誌・紀要） <span class="text-red-500">*</span></label>
-                        <input type="text" id="simPaperName" placeholder="例: 専門日本語教育研究 27" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">投稿先（学会誌・紀要） <span class="text-red-500">*</span></label>
+                        <input type="text" id="simPaperName" placeholder="例: 専門日本語教育研究 27" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
                     </div>
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">論文タイトル</label>
-                        <input type="text" id="simPaperTitle" placeholder="例: 〇〇に関する考察" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">論文タイトル</label>
+                        <input type="text" id="simPaperTitle" placeholder="例: 〇〇に関する考察" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-500 mb-1">原稿種別</label>
-                        <select id="simPaperFormat" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">原稿種別</label>
+                        <select id="simPaperFormat" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500">
                             <option value="論文" selected>論文</option>
                             <option value="実践報告">実践報告</option>
                             <option value="研究ノート">研究ノート</option>
@@ -160,100 +173,100 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-500 mb-1">著者</label>
-                        <input type="text" id="simPaperStatus" placeholder="例: 中川健司・田中太郎" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">著者</label>
+                        <input type="text" id="simPaperStatus" placeholder="例: 中川健司・田中太郎" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-500 mb-1">査読の有無</label>
-                        <select id="simPaperPeerReview" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">査読の有無</label>
+                        <select id="simPaperPeerReview" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500">
                             <option value="査読有">査読有</option>
                             <option value="査読無" selected>査読無</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-500 mb-1">投稿規定・ガイドラインURL</label>
-                        <input type="url" id="simPaperUrl" placeholder="https://..." class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">投稿規定・ガイドラインURL</label>
+                        <input type="url" id="simPaperUrl" placeholder="https://..." class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
                     </div>
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">規定メモ（文字数・ページ数など）</label>
-                        <input type="text" id="simPaperLocation" placeholder="例: 24,000字以内, 図表込み10ページ" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">規定メモ（文字数・ページ数など）</label>
+                        <input type="text" id="simPaperLocation" placeholder="例: 24,000字以内, 図表込み10ページ" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
                     </div>
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">メモ（自由記述）</label>
-                        <textarea id="simPaperMemo" placeholder="共同研究者への連絡事項、提出時の注意事項など自由にメモできます" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500" rows="2"></textarea>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">メモ（自由記述）</label>
+                        <textarea id="simPaperMemo" placeholder="共同研究者への連絡事項、提出時の注意事項など自由にメモできます" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500" rows="2"></textarea>
                     </div>
                     <div class="lg:col-span-1">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">目標投稿日(〆切) <span class="text-red-500">*</span></label>
-                        <input type="date" id="simPaperStartDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">目標投稿日(〆切) <span class="text-red-500">*</span></label>
+                        <input type="date" id="simPaperStartDate" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
                     </div>
                 </div>
 
                 <div id="form-grant" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div class="lg:col-span-1">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">助成金名 <span class="text-red-500">*</span></label>
-                        <input type="text" id="simGrantName" placeholder="例: 科研費 基盤(C)" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">助成金名 <span class="text-red-500">*</span></label>
+                        <input type="text" id="simGrantName" placeholder="例: 科研費 基盤(C)" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                     </div>
                     <div class="lg:col-span-3">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">研究課題名（タイトル）</label>
-                        <input type="text" id="simGrantTitle" placeholder="例: 〇〇に関する研究" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">研究課題名（タイトル）</label>
+                        <input type="text" id="simGrantTitle" placeholder="例: 〇〇に関する研究" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                     </div>
                     <div class="lg:col-span-1">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">研究代表者</label>
-                        <input type="text" id="simGrantPI" placeholder="例: 中川" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">研究代表者</label>
+                        <input type="text" id="simGrantPI" placeholder="例: 中川" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                     </div>
                     <div class="lg:col-span-1">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">研究分担者</label>
-                        <input type="text" id="simGrantCoI" placeholder="例: 田中" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">研究分担者</label>
+                        <input type="text" id="simGrantCoI" placeholder="例: 田中" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                     </div>
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">研究協力者</label>
-                        <input type="text" id="simGrantCollab" placeholder="例: 佐藤, 鈴木" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">研究協力者</label>
+                        <input type="text" id="simGrantCollab" placeholder="例: 佐藤, 鈴木" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                     </div>
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">公式サイト（募集要項）URL</label>
-                        <input type="url" id="simGrantUrl" placeholder="https://..." class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">公式サイト（募集要項）URL</label>
+                        <input type="url" id="simGrantUrl" placeholder="https://..." class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                     </div>
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">メモ（自由記述）</label>
-                        <textarea id="simGrantMemo" placeholder="助成金額の目安、学内〆切の特記事項などをメモできます" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" rows="2"></textarea>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">メモ（自由記述）</label>
+                        <textarea id="simGrantMemo" placeholder="助成金額の目安、学内〆切の特記事項などをメモできます" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" rows="2"></textarea>
                     </div>
                     <div class="lg:col-span-1">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">提出〆切日 <span class="text-red-500">*</span></label>
-                        <input type="date" id="simGrantStartDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">提出〆切日 <span class="text-red-500">*</span></label>
+                        <input type="date" id="simGrantStartDate" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                     </div>
                 </div>
 
                 <div id="form-custom" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">プロジェクト名（業務名など） <span class="text-red-500">*</span></label>
-                        <input type="text" id="simCustomName" placeholder="例: 留学生向け就職支援セミナー準備" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">プロジェクト名（業務名など） <span class="text-red-500">*</span></label>
+                        <input type="text" id="simCustomName" placeholder="例: 留学生向け就職支援セミナー準備" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
                     </div>
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">頻度（単発か定期か）</label>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">頻度（単発か定期か）</label>
                         <div class="flex gap-4 p-2.5 bg-white border border-slate-300 rounded">
-                            <label class="flex items-center gap-2 cursor-pointer font-medium">
-                                <input type="radio" name="simCustomType" value="single" checked onchange="toggleCustomDateMode()" class="w-4 h-4 text-purple-600"> 単発の予定
+                            <label class="flex items-center gap-2 cursor-pointer font-medium text-sm">
+                                <input type="radio" name="simCustomType" value="single" checked onchange="toggleCustomDateMode()" class="w-4 h-4 text-purple-600 accent-purple-600"> 単発の予定
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer font-medium">
-                                <input type="radio" name="simCustomType" value="recurring" onchange="toggleCustomDateMode()" class="w-4 h-4 text-purple-600"> 定期的な予定
+                            <label class="flex items-center gap-2 cursor-pointer font-medium text-sm">
+                                <input type="radio" name="simCustomType" value="recurring" onchange="toggleCustomDateMode()" class="w-4 h-4 text-purple-600 accent-purple-600"> 定期的な予定
                             </label>
                         </div>
                     </div>
 
                     <div id="custom-single-date" class="lg:col-span-2">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">実施日・期日 <span class="text-red-500">*</span></label>
-                        <input type="date" id="simCustomSingleDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">実施日・期日 <span class="text-red-500">*</span></label>
+                        <input type="date" id="simCustomSingleDate" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
                         <p class="text-xs text-slate-400 mt-1">※登録後、各プロジェクトのパネルから自由に準備タスクを追加できます。</p>
                     </div>
 
                     <div id="custom-recurring-date" class="hidden lg:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-bold text-slate-500 mb-1">初回の日付 <span class="text-red-500">*</span></label>
-                            <input type="date" id="simCustomStartDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">初回の日付 <span class="text-red-500">*</span></label>
+                            <input type="date" id="simCustomStartDate" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-500 mb-1">繰り返し頻度</label>
-                            <select id="simCustomFrequency" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">繰り返し頻度</label>
+                            <select id="simCustomFrequency" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-purple-500">
                                 <option value="weekly">毎週 (初回と同じ曜日)</option>
                                 <option value="biweekly">隔週 (2週間ごと)</option>
                                 <option value="monthly">毎月 (初回と同じ日付)</option>
@@ -261,27 +274,27 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-500 mb-1">最終日（いつまで繰り返すか） <span class="text-red-500">*</span></label>
-                            <input type="date" id="simCustomEndDate" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">最終日（いつまで繰り返すか） <span class="text-red-500">*</span></label>
+                            <input type="date" id="simCustomEndDate" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
                         </div>
                     </div>
 
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">場所（大学、オンライン等）</label>
-                        <input type="text" id="simCustomLocation" placeholder="例: 横浜国立大学 ○○教室, Zoom等" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">場所（大学、オンライン等）</label>
+                        <input type="text" id="simCustomLocation" placeholder="例: 横浜国立大学 ○○教室, Zoom等" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
                     </div>
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">担当者・関係者</label>
-                        <input type="text" id="simCustomPerson" placeholder="例: 田中先生, 事務局" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">担当者・関係者</label>
+                        <input type="text" id="simCustomPerson" placeholder="例: 田中先生, 事務局" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
                     </div>
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-bold text-slate-500 mb-1">メモ（自由記述）</label>
-                        <textarea id="simCustomMemo" placeholder="プロジェクトの目的、持参物などを自由にメモできます" class="w-full p-2.5 rounded border border-slate-300 text-base focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" rows="2"></textarea>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">メモ（自由記述）</label>
+                        <textarea id="simCustomMemo" placeholder="プロジェクトの目的、持参物などを自由にメモできます" class="w-full p-2.5 rounded border border-slate-300 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" rows="2"></textarea>
                     </div>
                 </div>
 
                 <div class="flex justify-end mt-4">
-                    <button onclick="importProject()" class="w-full md:w-auto bg-slate-900 text-white font-bold px-8 py-3 rounded shadow hover:bg-slate-800 transition whitespace-nowrap text-base">
+                    <button onclick="importProject()" class="w-full md:w-auto bg-slate-900 text-white font-bold px-8 py-2.5 rounded shadow hover:bg-slate-800 transition whitespace-nowrap text-sm">
                         スケジュール作成
                     </button>
                 </div>
@@ -289,15 +302,18 @@
         </div>
 
         <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
-            <div class="flex border-b border-slate-200 bg-slate-50 text-sm md:text-base">
-                <button onclick="switchTab('timeline')" id="tab-timeline" class="flex-1 py-3 md:py-4 text-center tab-active hover:bg-slate-100 transition font-bold">
-                    ⏱️ タイムライン
+            <div class="flex bg-slate-50 text-sm px-2 pt-2 border-b border-slate-200 gap-1">
+                <button onclick="switchTab('timeline')" id="tab-timeline" class="flex-1 py-3 text-center tab-active flex justify-center items-center gap-2 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    タイムライン
                 </button>
-                <button onclick="switchTab('project')" id="tab-project" class="flex-1 py-3 md:py-4 text-center tab-inactive hover:bg-slate-100 transition font-bold">
-                    📁 プロジェクト管理
+                <button onclick="switchTab('project')" id="tab-project" class="flex-1 py-3 text-center tab-inactive flex justify-center items-center gap-2 transition-colors">
+                    <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
+                    プロジェクト管理
                 </button>
-                <button onclick="switchTab('vault')" id="tab-vault" class="flex-1 py-3 md:py-4 text-center tab-inactive hover:bg-slate-100 transition font-bold">
-                    🗃️ 保管庫（業績出力）
+                <button onclick="switchTab('vault')" id="tab-vault" class="flex-1 py-3 text-center tab-inactive flex justify-center items-center gap-2 transition-colors">
+                    <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                    保管庫（業績出力）
                 </button>
             </div>
 
@@ -335,7 +351,6 @@
         window.isAdmin = false;
         window.forceAdmin = false; 
         
-        // プレビュー環境での通信を確実にするため、環境変数からAPP_IDを取得
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'academic_manager_v1'; 
         const LOCAL_STORAGE_KEY = 'academic_projects_v1';
 
@@ -432,7 +447,6 @@
             }
         };
 
-        // テスト用の管理者権限ON
         window.activateTestAdmin = () => {
             window.forceAdmin = true;
             updateAdminStatus();
@@ -453,12 +467,12 @@
 
             if (currentUser && !currentUser.isAnonymous) {
                 const adminBadge = window.isAdmin 
-                    ? ' <span class="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full ml-2 border border-rose-200">管理者モード</span>' 
-                    : ` <span class="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded-full ml-2 border border-slate-200" title="管理者にするにはコード内の ADMIN_EMAILS に ${currentUser.email} を追加してください">一般ユーザー</span>`;
-                userSpan.innerHTML = `👤 <span class="font-bold text-indigo-700">${currentUser.displayName || currentUser.email || 'ユーザー'}</span> さん${adminBadge}`;
+                    ? ' <span class="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full border border-rose-200">管理者モード</span>' 
+                    : ` <span class="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded-full border border-slate-200" title="管理者にするにはコード内の ADMIN_EMAILS に ${currentUser.email} を追加してください">一般ユーザー</span>`;
+                userSpan.innerHTML = `<svg class="w-4 h-4 text-indigo-800" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg> <span class="font-bold text-indigo-800">${currentUser.displayName || currentUser.email || 'ユーザー'}</span> <span class="font-normal text-slate-500">さん</span>${adminBadge}`;
             } else {
                  const adminBadge = window.isAdmin 
-                    ? ' <span class="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full ml-2 border border-rose-200">管理者モード(テスト)</span>' 
+                    ? ' <span class="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full border border-rose-200">管理者モード(テスト)</span>' 
                     : '';
                  userSpan.innerHTML = `同期機能は未ログイン(または匿名)です${adminBadge}`;
             }
@@ -477,13 +491,11 @@
             storage = getStorage(app);
             provider = new GoogleAuthProvider();
             
-            // ★プレビュー環境で確実にデータベースと通信するための認証初期化
             const initAuth = async () => {
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
                     } else {
-                        // ログインしていない状態でも一時的なIDを付与して保存を可能にする
                         await signInAnonymously(auth);
                     }
                 } catch(e) { console.warn("Auth initialization warning:", e); }
@@ -558,7 +570,11 @@
             const f = document.getElementById('add-project-form');
             const i = document.getElementById('add-form-icon');
             f.classList.toggle('hidden');
-            i.textContent = f.classList.contains('hidden') ? '▼' : '▲';
+            if(f.classList.contains('hidden')){
+                i.classList.remove('rotate-180');
+            } else {
+                i.classList.add('rotate-180');
+            }
         };
 
         window.toggleFormMode = () => {
@@ -682,7 +698,6 @@
             await saveProject(newProj);
             window.toggleAddForm();
             
-            // フォームリセット
             const formIds = ['simConfName', 'simConfTitle', 'simConfStatus', 'simConfUrl', 'simConfLocation', 'simConfMemo', 'simConfStartDate', 'simConfEndDate', 'simPaperName', 'simPaperTitle', 'simPaperStatus', 'simPaperUrl', 'simPaperLocation', 'simPaperMemo', 'simPaperStartDate', 'simGrantName', 'simGrantTitle', 'simGrantPI', 'simGrantCoI', 'simGrantCollab', 'simGrantUrl', 'simGrantMemo', 'simGrantStartDate', 'simCustomName', 'simCustomSingleDate', 'simCustomStartDate', 'simCustomEndDate', 'simCustomLocation', 'simCustomPerson', 'simCustomMemo'];
             formIds.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
             document.getElementById('simConfFormat').value = '';
@@ -726,7 +741,7 @@
                 input.classList.add('editing-input', 'cursor-text'); 
                 input.classList.remove('cursor-pointer', 'group-hover:text-indigo-700'); 
                 input.focus(); 
-                btn.innerHTML = '✅';
+                btn.innerHTML = '<svg class="w-4 h-4 inline text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             } else {
                 const val = input.value.trim();
                 const p = window.projects.find(x => x.id === pid);
@@ -740,7 +755,7 @@
                 input.setAttribute('readonly', true); 
                 input.classList.remove('editing-input', 'cursor-text'); 
                 input.classList.add('cursor-pointer', 'group-hover:text-indigo-700'); 
-                btn.innerHTML = '✏️';
+                btn.innerHTML = '<svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>';
                 window.render();
             }
         };
@@ -786,7 +801,6 @@
             n.value=''; startDateInput.value=''; window.render(); await saveProject(p);
         };
 
-        // ★添付ファイル・リンク機能
         window.addAttachmentLink = async (pid) => {
             const nameInput = document.getElementById(`attLinkName_${pid}`);
             const urlInput = document.getElementById(`attLinkUrl_${pid}`);
@@ -811,7 +825,6 @@
             const statusEl = document.getElementById(`uploadStatus_${pid}`);
             if(statusEl) statusEl.classList.remove('hidden');
             try {
-                // セキュリティルールに適合させるため、実行環境の APP_ID を使用
                 const currentAppId = typeof __app_id !== 'undefined' ? __app_id : APP_ID;
                 const storageRef = ref(storage, `artifacts/${currentAppId}/users/${currentUser.uid}/projects/${pid}/${Date.now()}_${file.name}`);
                 await uploadBytes(storageRef, file);
@@ -915,9 +928,9 @@
         window.render = () => {
             const container = document.getElementById('content-area');
             const stats = document.getElementById('overview-stats');
-            document.getElementById('tab-timeline').className = `flex-1 py-3 md:py-4 text-center ${window.currentTab === 'timeline' ? 'tab-active' : 'tab-inactive'} hover:bg-slate-100 transition font-bold`;
-            document.getElementById('tab-project').className = `flex-1 py-3 md:py-4 text-center ${window.currentTab === 'project' ? 'tab-active' : 'tab-inactive'} hover:bg-slate-100 transition font-bold`;
-            document.getElementById('tab-vault').className = `flex-1 py-3 md:py-4 text-center ${window.currentTab === 'vault' ? 'tab-active' : 'tab-inactive'} hover:bg-slate-100 transition font-bold`;
+            document.getElementById('tab-timeline').className = `flex-1 py-3 md:py-4 text-center ${window.currentTab === 'timeline' ? 'tab-active' : 'tab-inactive'} transition-colors flex justify-center items-center gap-2`;
+            document.getElementById('tab-project').className = `flex-1 py-3 md:py-4 text-center ${window.currentTab === 'project' ? 'tab-active' : 'tab-inactive'} transition-colors flex justify-center items-center gap-2`;
+            document.getElementById('tab-vault').className = `flex-1 py-3 md:py-4 text-center ${window.currentTab === 'vault' ? 'tab-active' : 'tab-inactive'} transition-colors flex justify-center items-center gap-2`;
 
             const activeProjects = window.projects.filter(p => !p.status || p.status === 'active');
             if (window.projects.length === 0 && window.currentTab !== 'vault') {
@@ -925,7 +938,7 @@
             }
             stats.classList.remove('hidden');
             let t=0, d=0; activeProjects.forEach(p => { t+=p.tasks.length; d+=p.tasks.filter(x=>x.completed).length; });
-            stats.innerHTML = `進行中: <span class="text-indigo-600">${activeProjects.length}</span> 件 | 達成率: <span class="text-indigo-600">${Math.round((d/t)*100)||0}%</span>`;
+            stats.innerHTML = `進行中: <span class="text-indigo-700">${activeProjects.length}</span> 件 | 達成率: <span class="text-indigo-700">${Math.round((d/t)*100)||0}%</span>`;
             
             if (window.currentTab === 'project') window.renderProjectView(container, activeProjects);
             else if (window.currentTab === 'vault') window.renderVaultView(container);
@@ -941,82 +954,118 @@
                 let color = proj.projectType==='paper'?'rose':proj.projectType==='grant'?'emerald':proj.projectType==='custom'?'purple':'blue';
                 let icon = proj.projectType==='paper'?'📄':proj.projectType==='grant'?'💰':proj.projectType==='custom'?'🗂️':'🎤';
 
-                html += `<div class="bg-white border border-${color}-300 rounded-xl shadow-sm overflow-hidden">
+                html += `<div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                     ${proj.isEditing ? `
                     <div class="p-4 bg-slate-50 border-b border-slate-200 text-sm">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                            <div>名称: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-2 border rounded text-base"></div>
-                            <div class="md:col-span-2">タイトル: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle || ''}" class="w-full p-2 border rounded text-base"></div>
-                            <div class="md:col-span-3">メモ: <textarea id="editMemo_${proj.id}" class="w-full p-2 border rounded text-base" rows="2">${proj.memo || ''}</textarea></div>
-                            <div>開始/〆切: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" class="w-full p-2 border rounded text-base"></div>
+                            <div>名称: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
+                            <div class="md:col-span-2">タイトル: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle || ''}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
+                            <div class="md:col-span-3">メモ: <textarea id="editMemo_${proj.id}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500" rows="2">${proj.memo || ''}</textarea></div>
+                            <div>開始/〆切: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
                         </div>
-                        <div class="flex justify-end gap-2"><button onclick="cancelEdit('${proj.id}')" class="px-4 py-2 border rounded font-bold">キャンセル</button><button onclick="saveEdit('${proj.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded font-bold">保存</button></div>
+                        <div class="flex justify-end gap-2"><button onclick="cancelEdit('${proj.id}')" class="px-4 py-2 border rounded font-bold hover:bg-slate-100">キャンセル</button><button onclick="saveEdit('${proj.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded font-bold hover:bg-indigo-700">保存</button></div>
                     </div>` : `
-                    <div class="p-4 flex flex-col sm:flex-row justify-between items-center cursor-pointer hover:bg-slate-50" onclick="toggleProjectExpand('${proj.id}')">
+                    <div class="p-4 flex flex-col sm:flex-row justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors" onclick="toggleProjectExpand('${proj.id}')">
                         <div class="flex items-center gap-3">
-                            <span class="text-2xl">${proj.isExpanded?'🔽':'▶️'}</span>
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded shadow-sm transition">
+                                <svg class="w-4 h-4 transition-transform ${proj.isExpanded?'':'rotate-[-90deg]'}" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                            </button>
                             <div>
-                                <h3 class="text-lg font-black">${icon} ${proj.name}</h3>
-                                <div class="text-sm text-slate-500">${proj.startDate} | ${proj.presentationTitle || ''}</div>
+                                <h3 class="text-lg font-black flex items-center gap-1">${icon} ${proj.name}</h3>
+                                <div class="text-xs text-slate-500 mt-1">${proj.startDate} | ${proj.presentationTitle || ''}</div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3 mt-3 sm:mt-0">
-                            <span class="text-sm font-bold">${prog}%</span>
-                            <button onclick="event.stopPropagation();startEdit('${proj.id}')" title="編集">✏️</button>
-                            <button onclick="event.stopPropagation();changeProjectStatus('${proj.id}', 'pending')" title="保留">⏸️</button>
-                            <button onclick="event.stopPropagation();deleteProject('${proj.id}')" class="text-red-500" title="削除">🗑️</button>
+                        <div class="flex items-center gap-4 mt-3 sm:mt-0 font-bold">
+                            <span class="text-sm">${prog}%</span>
+                            <button onclick="event.stopPropagation();startEdit('${proj.id}')" class="text-orange-500 hover:text-orange-700 transition" title="編集">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                            <button onclick="event.stopPropagation();changeProjectStatus('${proj.id}', 'pending')" class="text-blue-500 hover:text-blue-700 transition" title="保留">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </button>
+                            <button onclick="event.stopPropagation();deleteProject('${proj.id}')" class="text-slate-400 hover:text-red-500 transition" title="削除">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
                         </div>
                     </div>`}
                     <div class="${proj.isExpanded && !proj.isEditing?'block':'hidden'} border-t border-slate-100">
                         <table class="w-full text-sm sm:text-base">
                             <tbody class="divide-y divide-slate-100">
-                                ${proj.tasks.map(t => `<tr class="${t.completed?'opacity-50 bg-slate-50':''} transition-colors">
+                                ${proj.tasks.map(t => `<tr class="${t.completed?'bg-slate-50':''} transition-colors">
                                     <td class="p-3 w-12 text-center cursor-pointer" onclick="toggleTask('${proj.id}','${t.id}')">
-                                        <input type="checkbox" ${t.completed?'checked':''} class="w-5 h-5 accent-indigo-600 pointer-events-none">
+                                        <div class="w-5 h-5 rounded flex items-center justify-center border ${t.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-slate-300 bg-white'} transition-colors mx-auto">
+                                            ${t.completed ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                                        </div>
                                     </td>
-                                    <td class="p-3 w-36 text-xs sm:text-sm text-slate-500">
+                                    <td class="p-3 w-36 text-xs sm:text-sm text-slate-400">
                                         <input type="date" value="${t.dueDate}" onchange="updateDate('${proj.id}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[140px] transition-all ${t.completed?'opacity-50':''}">
                                     </td>
                                     <td class="p-3 group cursor-pointer" onclick="if(event.target.tagName !== 'INPUT' || event.target.hasAttribute('readonly')) toggleTask('${proj.id}','${t.id}')">
-                                        <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent outline-none cursor-pointer font-medium group-hover:text-indigo-700 transition-colors ${t.completed?'line-through text-slate-400':''}">
+                                        <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent outline-none cursor-pointer font-bold group-hover:text-indigo-700 transition-colors ${t.completed?'line-through text-slate-400 font-medium':'text-slate-700'}">
                                     </td>
-                                    <td class="p-3 w-[120px] text-right space-x-1 whitespace-nowrap">
-                                        <button onclick="toggleTaskEdit('${proj.id}','${t.id}',this)" class="hover:bg-slate-200 p-1.5 rounded transition text-slate-500 hover:text-indigo-700" title="タスク名を編集">✏️</button>
-                                        <button onclick="deleteTask('${proj.id}','${t.id}')" class="hover:bg-slate-200 p-1.5 rounded transition text-slate-400 hover:text-red-500" title="タスクを削除">🗑️</button>
-                                        <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, proj.name)}" target="_blank" class="hover:opacity-70 transition inline-block p-1.5" title="Googleカレンダーに追加">📅</a>
+                                    <td class="p-3 w-[120px] text-right space-x-2 whitespace-nowrap">
+                                        <button onclick="toggleTaskEdit('${proj.id}','${t.id}',this)" class="text-orange-400 hover:text-orange-600 transition" title="タスク名を編集">
+                                            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                        </button>
+                                        <button onclick="deleteTask('${proj.id}','${t.id}')" class="text-slate-300 hover:text-red-500 transition" title="タスクを削除">
+                                            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                        <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, proj.name)}" target="_blank" class="text-purple-400 hover:text-purple-600 transition inline-block" title="Googleカレンダーに追加">
+                                            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        </a>
                                     </td>
                                 </tr>`).join('')}
                                 ${(() => {
                                     const allD = proj.tasks.length > 0 && proj.tasks.every(t => t.completed);
                                     return `<tr class="${allD?'bg-indigo-50 font-bold':''}">
-                                        <td class="p-4 text-center"><input type="checkbox" ${allD?'':'disabled'} onchange="if(this.checked) changeProjectStatus('${proj.id}','completed')" class="w-5 h-5 cursor-pointer accent-indigo-600"></td>
-                                        <td colspan="3" class="p-4 text-slate-600">${allD ? '🏁 全タスク完了（ここをチェックして保管庫へ移動）' : '🏁 プロジェクトを完了するには全タスクにチェックを入れてください'}</td>
+                                        <td class="p-4 text-center">
+                                            <div class="w-5 h-5 rounded flex items-center justify-center border ${allD ? 'bg-indigo-500 border-indigo-500 text-white cursor-pointer' : 'border-slate-200 bg-slate-100 opacity-50'} transition-colors mx-auto" onclick="${allD ? `changeProjectStatus('${proj.id}','completed')` : ''}">
+                                                ${allD ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                                            </div>
+                                        </td>
+                                        <td colspan="3" class="p-4 text-slate-500 text-sm">${allD ? '🏁 プロジェクト完了（確定して保管庫へ）' : '<span class="text-slate-400 font-bold mr-1">※</span>プロジェクトを完了するには全タスクにチェックを入れてください'}</td>
                                     </tr>`;
                                 })()}
                             </tbody>
                         </table>
                         
                         <div class="p-4 bg-white border-t border-slate-200">
-                            <h4 class="text-sm font-bold text-slate-700 mb-2">📎 添付ファイル・リンク</h4>
+                            <h4 class="text-sm font-bold text-slate-700 mb-2 flex items-center gap-1">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                                添付ファイル・リンク
+                            </h4>
                             <ul class="mb-3 space-y-1">
                                 ${(proj.attachments || []).map(att => `<li class="flex items-center gap-2 text-sm">
-                                    <a href="${att.url}" target="_blank" class="text-blue-600 hover:underline flex-1 truncate">${att.type==='file'?'📄':'🔗'} ${att.name}</a>
-                                    <button onclick="deleteAttachment('${proj.id}','${att.id}')" class="text-slate-300 hover:text-red-500">❌</button>
+                                    <a href="${att.url}" target="_blank" class="text-blue-600 hover:underline flex-1 truncate flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${att.type==='file' ? 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' : 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1'}"></path></svg>
+                                        ${att.name}
+                                    </a>
+                                    <button onclick="deleteAttachment('${proj.id}','${att.id}')" class="text-slate-300 hover:text-red-500">
+                                        <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
                                 </li>`).join('')}
                             </ul>
                             <div class="flex flex-wrap gap-2 items-center">
-                                <input type="text" id="attLinkName_${proj.id}" placeholder="名称" class="text-sm border rounded px-2 py-1 w-32">
-                                <input type="url" id="attLinkUrl_${proj.id}" placeholder="URL" class="text-sm border rounded px-2 py-1 flex-1 min-w-[120px]">
-                                <button onclick="addAttachmentLink('${proj.id}')" class="text-xs bg-slate-200 px-3 py-1.5 rounded font-bold">🔗 リンク追加</button>
-                                ${window.isAdmin ? `<label class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded font-bold cursor-pointer hover:bg-indigo-200 transition">⬆️ アップロード<input type="file" class="hidden" onchange="uploadAttachmentFile('${proj.id}', this)"></label>` : ''}
+                                <input type="text" id="attLinkName_${proj.id}" placeholder="名称" class="text-sm border rounded px-2 py-1.5 w-32 focus:outline-none focus:border-indigo-500">
+                                <input type="url" id="attLinkUrl_${proj.id}" placeholder="URL" class="text-sm border rounded px-2 py-1.5 flex-1 min-w-[120px] focus:outline-none focus:border-indigo-500">
+                                <button onclick="addAttachmentLink('${proj.id}')" class="text-xs bg-slate-200 px-3 py-2 rounded font-bold hover:bg-slate-300 transition flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                                    リンク追加
+                                </button>
+                                ${window.isAdmin ? `<label class="text-xs bg-indigo-50 text-indigo-700 px-3 py-2 rounded font-bold cursor-pointer border border-indigo-200 hover:bg-indigo-100 transition flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                    アップロード<input type="file" class="hidden" onchange="uploadAttachmentFile('${proj.id}', this)"></label>` : ''}
                             </div>
                             <div id="uploadStatus_${proj.id}" class="text-xs text-indigo-500 font-bold mt-1 hidden">アップロード中...</div>
                         </div>
 
-                        <div class="p-3 bg-slate-50 border-t flex flex-wrap gap-2 items-center">
-                            <input type="text" id="cName_${proj.id}" placeholder="新しいタスク..." class="flex-1 text-sm border rounded px-3 py-1.5 min-w-[200px]">
-                            <input type="date" id="cDate_${proj.id}" class="text-sm border rounded px-2 p-1.5">
-                            <button onclick="addCustomTask('${proj.id}')" class="bg-slate-700 text-white px-4 py-1.5 rounded text-sm font-bold hover:bg-slate-600 transition">＋ 追加</button>
+                        <div class="p-3 bg-white border-t flex flex-wrap gap-2 items-center">
+                            <input type="text" id="cName_${proj.id}" placeholder="新しいタスク..." class="flex-1 text-sm border rounded px-3 py-2 min-w-[200px] focus:outline-none focus:border-indigo-500">
+                            <input type="date" id="cDate_${proj.id}" class="text-sm border rounded px-2 py-2 text-slate-600 focus:outline-none focus:border-indigo-500">
+                            <button onclick="addCustomTask('${proj.id}')" class="bg-slate-700 text-white px-4 py-2 rounded text-sm font-bold hover:bg-slate-600 transition shadow-sm flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                追加
+                            </button>
                             <label class="flex items-center gap-1 text-xs text-slate-500 ml-2 cursor-pointer font-bold">
                                 <input type="checkbox" id="cRecurToggle_${proj.id}" class="w-4 h-4 cursor-pointer accent-indigo-600"> 定期タスク
                             </label>
@@ -1035,26 +1084,32 @@
                 }
             }));
             all.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
-            container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden">
+            container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden shadow-sm">
                 <table class="w-full text-sm sm:text-base">
-                    <thead class="bg-slate-900 text-white text-xs uppercase">
-                        <tr><th class="p-3 w-12"></th><th class="p-3 w-36 text-left">期日</th><th class="p-3 text-left">内容</th><th class="p-3 w-[100px]"></th></tr>
+                    <thead class="bg-slate-900 text-white text-xs uppercase tracking-wider">
+                        <tr><th class="p-4 w-12"></th><th class="p-4 w-36 text-left font-bold">期日</th><th class="p-4 text-left font-bold">内容</th><th class="p-4 w-[100px] text-right font-bold">転記</th></tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200">
+                    <tbody class="divide-y divide-slate-100">
                         ${all.map(t => `<tr class="hover:bg-slate-50 transition-colors">
                             <td class="p-3 text-center cursor-pointer" onclick="toggleTask('${t.pId}','${t.id}')">
-                                <input type="checkbox" ${t.completed ? 'checked' : ''} class="w-5 h-5 accent-indigo-600 pointer-events-none">
+                                <div class="w-5 h-5 rounded flex items-center justify-center border ${t.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-slate-300 bg-white'} transition-colors mx-auto">
+                                    ${t.completed ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                                </div>
                             </td>
                             <td class="p-3 text-xs sm:text-sm">
-                                <input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[140px] transition-all text-slate-600">
+                                <div class="flex items-center gap-1">
+                                    <input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[120px] transition-all text-slate-700 font-mono">
+                                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                </div>
                             </td>
                             <td class="p-3 cursor-pointer group" onclick="if(event.target.tagName !== 'INPUT') toggleTask('${t.pId}','${t.id}')">
                                 <div class="text-xs font-bold text-slate-400 mb-0.5">${t.pName}</div>
-                                <div class="font-medium group-hover:text-indigo-700 transition-colors ${t.completed?'line-through text-slate-400':''}">${t.name}</div>
+                                <div class="font-bold group-hover:text-indigo-700 transition-colors ${t.completed?'line-through text-slate-400 font-medium':'text-slate-800'}">${t.name}</div>
                             </td>
-                            <td class="p-3 text-right space-x-1 whitespace-nowrap">
-                                <button onclick="deleteTask('${t.pId}','${t.id}')" class="hover:bg-slate-200 p-1.5 rounded transition text-slate-400 hover:text-red-500" title="タスクを削除">🗑️</button>
-                                <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName)}" target="_blank" class="text-xl hover:opacity-70 transition inline-block p-1.5 text-center" title="Googleカレンダーに追加">📅</a>
+                            <td class="p-3 text-right">
+                                <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName)}" target="_blank" class="text-slate-300 hover:text-indigo-500 transition inline-block p-1.5 text-center" title="Googleカレンダーに追加">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                </a>
                             </td>
                         </tr>`).join('')}
                     </tbody>
@@ -1069,26 +1124,49 @@
             const renderGroup = (items, title) => {
                 if(items.length === 0) return '';
                 return `<div class="mb-6"><h4 class="font-bold border-b-2 mb-2 text-slate-700">${title}</h4>
-                <div class="space-y-2">${items.map(p => `<div class="p-2 bg-white border rounded flex justify-between items-center text-sm">
-                    <div><b>${p.name}</b><br><small>${p.startDate}</small></div>
-                    <div class="space-x-3"><button onclick="changeProjectStatus('${p.id}','active')" class="text-indigo-600 font-bold hover:underline">復元</button><button onclick="deleteProject('${p.id}')" class="text-red-500 font-bold hover:underline">削除</button></div>
+                <div class="space-y-2">${items.map(p => `<div class="p-3 bg-white border rounded shadow-sm flex justify-between items-center text-sm">
+                    <div><b class="text-slate-800 text-base">${p.name}</b><br><small class="text-slate-500">${p.startDate}</small></div>
+                    <div class="space-x-4">
+                        <button onclick="changeProjectStatus('${p.id}','active')" class="text-indigo-600 font-bold hover:underline flex items-center gap-1 inline-flex">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>復元
+                        </button>
+                        <button onclick="deleteProject('${p.id}')" class="text-red-500 font-bold hover:underline flex items-center gap-1 inline-flex">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>削除
+                        </button>
+                    </div>
                 </div>`).join('')}</div></div>`;
             };
 
             container.innerHTML = `
-                <div class="bg-white border rounded-xl p-4 mb-6 shadow-sm">
-                    <h3 class="font-black mb-2 flex items-center gap-2"><span>📋</span> 業績リスト プレビュー</h3>
-                    <textarea readonly class="w-full h-32 p-3 bg-slate-50 border rounded text-xs font-mono mb-2 focus:outline-none">${window.generateAchievementText()}</textarea>
-                    <button onclick="downloadAchievement()" class="bg-slate-900 text-white px-4 py-2 rounded text-sm font-bold shadow hover:bg-slate-800 transition">テキスト保存</button>
+                <div class="bg-white border rounded-xl p-6 mb-6 shadow-sm">
+                    <h3 class="font-black mb-3 text-lg flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        業績リスト プレビュー
+                    </h3>
+                    <textarea readonly class="w-full h-40 p-4 bg-slate-50 border rounded-lg text-sm font-mono mb-3 focus:outline-none text-slate-700 leading-relaxed">${window.generateAchievementText()}</textarea>
+                    <button onclick="downloadAchievement()" class="bg-slate-900 text-white px-6 py-2.5 rounded shadow hover:bg-slate-800 transition text-sm font-bold flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        テキスト保存
+                    </button>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div><h3 class="font-black mb-4 flex items-center gap-2"><span>✅</span> 完了プロジェクト</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="font-black mb-4 text-lg flex items-center gap-2 border-b-2 border-slate-200 pb-2">
+                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            完了プロジェクト
+                        </h3>
                         ${renderGroup(completed.filter(x=>x.projectType==='conference'), '学会発表')}
                         ${renderGroup(completed.filter(x=>x.projectType==='paper'), '論文投稿')}
                         ${renderGroup(completed.filter(x=>x.projectType==='grant'), '研究助成')}
                         ${renderGroup(completed.filter(x=>x.projectType==='custom'), 'その他')}
                     </div>
-                    <div><h3 class="font-black mb-4 flex items-center gap-2"><span>⏸️</span> 保留中</h3>${renderGroup(pending, '全保留リスト')}</div>
+                    <div>
+                        <h3 class="font-black mb-4 text-lg flex items-center gap-2 border-b-2 border-slate-200 pb-2">
+                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            保留中
+                        </h3>
+                        ${renderGroup(pending, '全保留リスト')}
+                    </div>
                 </div>
             `;
         };
