@@ -142,7 +142,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, onSnapshot, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase Configuration
@@ -181,9 +181,8 @@
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     currentUser = user;
-                    // デモ用の管理者判定: メールアドレスが特定のもの、またはUIDで判定。
-                    // 今回はテストしやすいように、メールアドレス情報をモックで注入できる想定。
-                    isAdmin = (user.email === ADMIN_EMAIL) || user.isAnonymous === false; // 便宜上、匿名以外を管理者扱いにする等の工夫も可
+                    // デモ用の管理者判定: メールアドレスが特定のもの
+                    isAdmin = user.email === ADMIN_EMAIL; 
                     
                     // UIの更新
                     updateAuthUI();
@@ -204,16 +203,56 @@
 
         function updateAuthUI() {
             const authSection = document.getElementById('auth-section');
-            if (currentUser) {
+            if (currentUser && !currentUser.isAnonymous) {
                 const badgeClass = isAdmin ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-slate-100 text-slate-800 border-slate-200';
-                const roleText = isAdmin ? '管理者(ファイルUP可)' : '一般(リンクのみ)';
+                const roleText = isAdmin ? '管理者(ファイルUP可)' : '一般ユーザー';
                 authSection.innerHTML = `
-                    <div class="text-xs border ${badgeClass} px-2 py-1 rounded-full font-medium">
-                        <i class="fa-solid ${isAdmin ? 'fa-user-shield' : 'fa-user'} mr-1"></i>${roleText}
+                    <div class="flex items-center gap-2">
+                        <img src="${currentUser.photoURL || 'https://www.gravatar.com/avatar/?d=mp'}" class="w-6 h-6 rounded-full border border-slate-200" title="${currentUser.email}">
+                        <div class="text-xs border ${badgeClass} px-2 py-1 rounded-full font-medium hidden sm:block">
+                            <i class="fa-solid ${isAdmin ? 'fa-user-shield' : 'fa-user'} mr-1"></i>${roleText}
+                        </div>
+                        <button onclick="signOutUser()" class="text-xs text-slate-500 hover:text-slate-700 ml-1" title="ログアウト">
+                            <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                        </button>
                     </div>
+                `;
+            } else {
+                authSection.innerHTML = `
+                    <div class="text-xs text-slate-500 mr-2 hidden sm:block">ゲストモード</div>
+                    <button onclick="signInWithGoogle()" class="text-xs bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded shadow-sm font-medium transition-colors flex items-center">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4 mr-1.5" alt="Google">
+                        Googleでログイン
+                    </button>
                 `;
             }
         }
+
+        window.signInWithGoogle = async function() {
+            if (!auth) {
+                showToast("認証環境が準備されていません");
+                return;
+            }
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                showToast("Googleアカウントでログインしました");
+            } catch (error) {
+                console.error("Login failed:", error);
+                showToast("ログインに失敗しました");
+            }
+        };
+
+        window.signOutUser = async function() {
+            if (!auth) return;
+            try {
+                await signOut(auth);
+                showToast("ログアウトしました");
+                setTimeout(() => window.location.reload(), 1000);
+            } catch (error) {
+                console.error("Sign out failed:", error);
+            }
+        };
 
         function getCollectionPath(colName) {
             if (!currentUser) return null;
