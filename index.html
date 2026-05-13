@@ -1,57 +1,196 @@
-function renderTimeline() {
-    const container = document.getElementById('main-content');
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教育・研究タスク管理ツール (260509-08 改正版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons ライブラリの読み込み -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
 
-    let allActiveTasks = [];
-    projects.filter(p => !p.isArchived).forEach(p => {
-        p.tasks.forEach(t => {
-            // 修正：完了しており、かつ完了日が「今日より前」なら非表示
-            if (t.completed && t.completedAt && t.completedAt < todayStart) {
-                return; 
-            }
-            allActiveTasks.push({ ...t, projectName: p.name });
-        });
-    });
-
-    // 日付順にソート
-    allActiveTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    container.innerHTML = `
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-900 text-white text-xs uppercase">
-                    <tr>
-                        <th class="p-4 w-32">期日</th>
-                        <th class="p-4">内容</th>
-                        <th class="p-4 w-12 text-center">転記</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${allActiveTasks.map(t => `
-                        <tr class="border-b border-slate-100 hover:bg-slate-50">
-                            <td class="p-4 whitespace-nowrap">
-                                <div class="flex items-center gap-2 font-mono text-sm">
-                                    <span class="${t.completed ? 'text-slate-300' : ''}">${t.date}</span>
-                                    <!-- 1. 期日変更用のカレンダーアイコン -->
-                                    <i data-lucide="calendar" class="w-4 h-4 text-blue-500 cursor-pointer" onclick="openDatePicker('${t.id}')"></i>
-                                </div>
-                            </td>
-                            <td class="p-4">
-                                <div class="text-[10px] text-slate-400 uppercase">${t.projectName}</div>
-                                <div class="${t.completed ? 'line-through text-slate-300' : 'font-bold'}">${t.text}</div>
-                            </td>
-                            <td class="p-4 text-center">
-                                <!-- 2. Googleカレンダー転記用のアイコン（右端） -->
-                                <i data-lucide="external-link" class="w-4 h-4 text-slate-300 cursor-pointer hover:text-blue-600" onclick="syncToCalendar('${t.id}')"></i>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
+<div id="app" class="max-w-5xl mx-auto p-4">
+    <!-- ヘッダーと達成率 -->
+    <header class="flex justify-between items-end mb-6">
+        <div>
+            <h1 class="text-2xl font-black italic tracking-tighter">TASK MANAGER</h1>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Academic & Research Management</p>
         </div>
-    `;
-    
-    // アイコンの再描画を実行
-    lucide.createIcons();
-}
+        <div class="text-right">
+            <span class="text-[10px] font-black text-slate-400 uppercase">Current Progress</span>
+            <div class="text-4xl font-black leading-none" id="total-progress">0%</div>
+        </div>
+    </header>
+
+    <!-- タブメニュー -->
+    <div class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl overflow-hidden shadow-sm">
+        <button onclick="switchTab('timeline')" id="tab-timeline" class="flex-1 py-4 font-bold border-b-4 border-slate-900 bg-slate-50 transition-all">🕒 タイムライン</button>
+        <button onclick="switchTab('projects')" id="tab-projects" class="flex-1 py-4 font-bold border-b-4 border-transparent hover:bg-slate-50 transition-all">📂 プロジェクト管理</button>
+        <button onclick="switchTab('archive')" id="tab-archive" class="flex-1 py-4 font-bold border-b-4 border-transparent hover:bg-slate-50 transition-all">🗄️ 保管庫（業績出力）</button>
+    </div>
+
+    <div id="main-content" class="min-h-[60vh]"></div>
+</div>
+
+<script>
+    // --- 開発用初期データ (実際はFirestore等から取得されます) ---
+    // 既存のデータ読み込みロジックがある場合はここを置き換えてください
+    let projects = [
+        {
+            id: 'p1',
+            name: '第31回 留学生教育学会 年次大会',
+            isArchived: false,
+            tasks: [
+                { id: 't1', text: '年会費支払い', date: '2026-05-12', completed: true, completedAt: new Date('2026-05-12').getTime() },
+                { id: 't2', text: '出張手続き（中川・横田）', date: '2026-05-14', completed: false }
+            ]
+        },
+        {
+            id: 'p2',
+            name: '日本言語政策学会',
+            isArchived: false,
+            tasks: [
+                { id: 't3', text: '発表要旨の作成', date: '2026-04-14', completed: true, completedAt: new Date('2026-04-14').getTime() },
+                { id: 't4', text: '参加申し込み', date: '2026-05-30', completed: false }
+            ]
+        }
+    ];
+
+    // --- 達成率計算 (保管庫除外) ---
+    function updateProgress() {
+        const activeProjects = projects.filter(p => !p.isArchived);
+        let total = 0, done = 0;
+        activeProjects.forEach(p => {
+            p.tasks.forEach(t => { total++; if (t.completed) done++; });
+        });
+        const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+        document.getElementById('total-progress').innerText = `${percent}%`;
+    }
+
+    // --- タイムライン描画 (昨日以前の完了タスク非表示) ---
+    function renderTimeline() {
+        const container = document.getElementById('main-content');
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+        let allActiveTasks = [];
+        projects.filter(p => !p.isArchived).forEach(p => {
+            p.tasks.forEach(t => {
+                // 昨日以前に完了したタスクは除外
+                if (t.completed && t.completedAt && t.completedAt < todayStart) return;
+                allActiveTasks.push({ ...t, projectName: p.name });
+            });
+        });
+
+        allActiveTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        container.innerHTML = `
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-900 text-white text-[10px] uppercase tracking-widest">
+                        <tr>
+                            <th class="p-4 w-32">期日</th>
+                            <th class="p-4">内容</th>
+                            <th class="p-4 w-12 text-center">転記</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        ${allActiveTasks.map(t => `
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-2 font-mono text-sm">
+                                        <span class="${t.completed ? 'text-slate-300' : ''}">${t.date}</span>
+                                        <!-- 期日変更用のカレンダーアイコン -->
+                                        <i data-lucide="calendar" class="w-4 h-4 text-blue-500 cursor-pointer hover:scale-110 transition-transform" onclick="openDatePicker('${t.id}')"></i>
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    <div class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">${t.projectName}</div>
+                                    <div class="${t.completed ? 'line-through text-slate-300' : 'font-bold'} text-sm">${t.text}</div>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <!-- Googleカレンダー転記用の外部リンクアイコン -->
+                                    <i data-lucide="external-link" class="w-4 h-4 text-slate-300 cursor-pointer hover:text-blue-600 transition-colors" onclick="syncToCalendar('${t.id}')"></i>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        // アイコンの描画実行
+        lucide.createIcons();
+    }
+
+    // --- プロジェクト別表示 ---
+    function renderProjects() {
+        const container = document.getElementById('main-content');
+        const activeProjects = projects.filter(p => !p.isArchived);
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+        container.innerHTML = activeProjects.map(p => {
+            // プロジェクト内でも昨日以前の完了タスクを非表示にする
+            const visibleTasks = p.tasks.filter(t => !(t.completed && t.completedAt && t.completedAt < todayStart));
+            const progress = p.tasks.length === 0 ? 0 : Math.round((p.tasks.filter(t => t.completed).length / p.tasks.length) * 100);
+
+            return `
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="font-black text-lg">${p.name}</h2>
+                        <span class="text-xs font-bold bg-slate-100 px-2 py-1 rounded">${progress}%</span>
+                    </div>
+                    <div class="space-y-3">
+                        ${visibleTasks.map(t => `
+                            <div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded group">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" ${t.completed ? 'checked' : ''} class="w-4 h-4 rounded border-slate-300">
+                                    <span class="${t.completed ? 'line-through text-slate-300' : 'font-bold'} text-sm">${t.text}</span>
+                                </div>
+                                <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span class="text-[10px] font-mono text-slate-400">${t.date}</span>
+                                    <i data-lucide="calendar" class="w-4 h-4 text-blue-500 cursor-pointer" onclick="openDatePicker('${t.id}')"></i>
+                                    <i data-lucide="trash-2" class="w-4 h-4 text-slate-300 cursor-pointer hover:text-red-500"></i>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        lucide.createIcons();
+    }
+
+    // --- タブ切り替え ---
+    function switchTab(tab) {
+        const buttons = document.querySelectorAll('button[id^="tab-"]');
+        buttons.forEach(b => {
+            b.classList.remove('border-slate-900', 'bg-slate-50');
+            b.classList.add('border-transparent');
+        });
+        document.getElementById(`tab-${tab}`).classList.add('border-slate-900', 'bg-slate-50');
+        
+        if (tab === 'timeline') renderTimeline();
+        if (tab === 'projects') renderProjects();
+        if (tab === 'archive') {
+            document.getElementById('main-content').innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">保管庫（開発中：業績テキスト出力機能）</div>';
+        }
+    }
+
+    // --- ダミー関数 (実環境の関数を呼ぶようにしてください) ---
+    function openDatePicker(id) { alert('期日変更ダイアログを表示: ' + id); }
+    function syncToCalendar(id) { alert('Googleカレンダーに転記します: ' + id); }
+
+    // 初期起動
+    window.onload = () => {
+        updateProgress();
+        renderTimeline();
+    };
+</script>
+</body>
+</html>
