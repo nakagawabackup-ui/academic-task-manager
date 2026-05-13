@@ -859,6 +859,10 @@
                 p.name = document.getElementById(`editName_${id}`).value;
                 const titleEl = document.getElementById(`editTitle_${id}`); if (titleEl) p.presentationTitle = titleEl.value;
                 const fmtEl = document.getElementById(`editFormat_${id}`); if (fmtEl) p.presentationFormat = fmtEl.value;
+                
+                // ★ 公式サイトURLの保存処理を追加
+                const urlEl = document.getElementById(`editUrl_${id}`); if (urlEl) p.url = urlEl.value;
+                
                 if (p.projectType === 'grant') {
                     p.pi = document.getElementById(`editGrantPI_${id}`).value;
                     p.coi = document.getElementById(`editGrantCoI_${id}`).value;
@@ -869,7 +873,6 @@
                     p.presentationStatus = document.getElementById(`editStatus_${id}`).value; 
                 }
                 const prEl = document.getElementById(`editPeerReview_${id}`); if (prEl) p.peerReview = prEl.value;
-                const urlEl = document.getElementById(`editUrl_${id}`); if (urlEl) p.url = urlEl.value;
                 const locEl = document.getElementById(`editLocation_${id}`); if (locEl) p.location = locEl.value;
                 p.memo = document.getElementById(`editMemo_${id}`).value;
                 p.startDate = document.getElementById(`editStartDate_${id}`).value;
@@ -961,6 +964,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                             <div>名称: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
                             <div class="md:col-span-2">タイトル: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle || ''}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
+                            <div class="md:col-span-3">URL (公式サイト等): <input type="url" id="editUrl_${proj.id}" value="${proj.url || ''}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
                             <div class="md:col-span-3">メモ: <textarea id="editMemo_${proj.id}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500" rows="2">${proj.memo || ''}</textarea></div>
                             <div>開始/〆切: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
                         </div>
@@ -972,7 +976,10 @@
                                 <svg class="w-4 h-4 transition-transform ${proj.isExpanded?'':'rotate-[-90deg]'}" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                             </button>
                             <div>
-                                <h3 class="text-lg font-black flex items-center gap-1">${icon} ${proj.name}</h3>
+                                <h3 class="text-lg font-black flex items-center gap-1">
+                                    ${icon} ${proj.name}
+                                    ${proj.url ? `<a href="${proj.url}" target="_blank" onclick="event.stopPropagation()" class="ml-2 text-slate-400 hover:text-blue-600 transition" title="公式サイトを開く"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>` : ''}
+                                </h3>
                                 <div class="text-xs text-slate-500 mt-1">${proj.startDate} | ${proj.presentationTitle || ''}</div>
                             </div>
                         </div>
