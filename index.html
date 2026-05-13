@@ -351,6 +351,7 @@
         window.isAdmin = false;
         window.forceAdmin = false; 
         
+        // プレビュー環境での通信を確実にするため、環境変数からAPP_IDを取得
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'academic_manager_v1'; 
         const LOCAL_STORAGE_KEY = 'academic_projects_v1';
 
@@ -1000,8 +1001,8 @@
                                     <td class="p-3 w-36 text-xs sm:text-sm text-slate-400">
                                         <input type="date" value="${t.dueDate}" onchange="updateDate('${proj.id}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[140px] transition-all ${t.completed?'opacity-50':''}">
                                     </td>
-                                    <td class="p-3 group cursor-pointer" onclick="if(event.target.tagName !== 'INPUT' || event.target.hasAttribute('readonly')) toggleTask('${proj.id}','${t.id}')">
-                                        <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent outline-none cursor-pointer font-bold group-hover:text-indigo-700 transition-colors ${t.completed?'line-through text-slate-400 font-medium':'text-slate-700'}">
+                                    <td class="p-3 group">
+                                        <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent outline-none font-bold transition-colors ${t.completed?'line-through text-slate-400 font-medium':'text-slate-700'}">
                                     </td>
                                     <td class="p-3 w-[120px] text-right space-x-2 whitespace-nowrap">
                                         <button onclick="toggleTaskEdit('${proj.id}','${t.id}',this)" class="text-orange-400 hover:text-orange-600 transition" title="タスク名を編集">
@@ -1087,7 +1088,7 @@
             container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden shadow-sm">
                 <table class="w-full text-sm sm:text-base">
                     <thead class="bg-slate-900 text-white text-xs uppercase tracking-wider">
-                        <tr><th class="p-4 w-12"></th><th class="p-4 w-36 text-left font-bold">期日</th><th class="p-4 text-left font-bold">内容</th><th class="p-4 w-[100px] text-right font-bold">転記</th></tr>
+                        <tr><th class="p-4 w-12"></th><th class="p-4 w-36 text-left font-bold">期日</th><th class="p-4 text-left font-bold">内容</th><th class="p-4 w-[120px] text-right font-bold">操作</th></tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         ${all.map(t => `<tr class="hover:bg-slate-50 transition-colors">
@@ -1099,16 +1100,21 @@
                             <td class="p-3 text-xs sm:text-sm">
                                 <div class="flex items-center gap-1">
                                     <input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[120px] transition-all text-slate-700 font-mono">
-                                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 </div>
                             </td>
-                            <td class="p-3 cursor-pointer group" onclick="if(event.target.tagName !== 'INPUT') toggleTask('${t.pId}','${t.id}')">
+                            <td class="p-3 group">
                                 <div class="text-xs font-bold text-slate-400 mb-0.5">${t.pName}</div>
-                                <div class="font-bold group-hover:text-indigo-700 transition-colors ${t.completed?'line-through text-slate-400 font-medium':'text-slate-800'}">${t.name}</div>
+                                <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent outline-none font-bold transition-colors ${t.completed?'line-through text-slate-400 font-medium':'text-slate-800'}">
                             </td>
-                            <td class="p-3 text-right">
-                                <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName)}" target="_blank" class="text-slate-300 hover:text-indigo-500 transition inline-block p-1.5 text-center" title="Googleカレンダーに追加">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            <td class="p-3 w-[120px] text-right space-x-2 whitespace-nowrap">
+                                <button onclick="toggleTaskEdit('${t.pId}','${t.id}',this)" class="text-orange-400 hover:text-orange-600 transition" title="タスク名を編集">
+                                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </button>
+                                <button onclick="deleteTask('${t.pId}','${t.id}')" class="text-slate-300 hover:text-red-500 transition" title="タスクを削除">
+                                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                                <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName)}" target="_blank" class="text-purple-400 hover:text-purple-600 transition inline-block" title="Googleカレンダーに追加">
+                                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 </a>
                             </td>
                         </tr>`).join('')}
