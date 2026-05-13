@@ -900,17 +900,18 @@
                         <table class="w-full text-sm sm:text-base">
                             <tbody class="divide-y divide-slate-100">
                                 ${proj.tasks.map(t => `<tr class="${t.completed?'opacity-50 bg-slate-50':''} transition-colors">
-                                    <td class="p-3 w-12 text-center">
-                                        <input type="checkbox" ${t.completed?'checked':''} class="w-5 h-5 cursor-pointer accent-indigo-600" onchange="toggleTask('${proj.id}','${t.id}')">
+                                    <td class="p-3 w-12 text-center cursor-pointer" onclick="toggleTask('${proj.id}','${t.id}')">
+                                        <input type="checkbox" ${t.completed?'checked':''} class="w-5 h-5 accent-indigo-600 pointer-events-none">
                                     </td>
                                     <td class="p-3 w-36 text-xs sm:text-sm text-slate-500">
                                         <input type="date" value="${t.dueDate}" onchange="updateDate('${proj.id}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[140px] transition-all ${t.completed?'opacity-50':''}">
                                     </td>
-                                    <td class="p-3 group" onclick="if(event.target.tagName !== 'INPUT' || event.target.hasAttribute('readonly')) toggleTask('${proj.id}','${t.id}')">
+                                    <td class="p-3 group cursor-pointer" onclick="if(event.target.tagName !== 'INPUT' || event.target.hasAttribute('readonly')) toggleTask('${proj.id}','${t.id}')">
                                         <input type="text" value="${t.name}" readonly class="task-name-input w-full bg-transparent outline-none cursor-pointer font-medium group-hover:text-indigo-700 transition-colors ${t.completed?'line-through text-slate-400':''}">
                                     </td>
-                                    <td class="p-3 w-24 text-right space-x-1">
+                                    <td class="p-3 w-32 text-right space-x-1 flex-nowrap whitespace-nowrap">
                                         <button onclick="toggleTaskEdit('${proj.id}','${t.id}',this)" class="hover:bg-slate-200 p-1.5 rounded transition" title="タスク名を編集">✏️</button>
+                                        <button onclick="deleteTask('${proj.id}','${t.id}')" class="hover:bg-slate-200 p-1.5 rounded transition text-slate-400 hover:text-red-500" title="タスクを削除">🗑️</button>
                                         <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, proj.name)}" target="_blank" class="hover:opacity-70 transition inline-block p-1.5" title="Googleカレンダーに追加">📅</a>
                                     </td>
                                 </tr>`).join('')}
@@ -966,11 +967,13 @@
             container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden">
                 <table class="w-full text-sm sm:text-base">
                     <thead class="bg-slate-900 text-white text-xs uppercase">
-                        <tr><th class="p-3 w-12"></th><th class="p-3 w-36 text-left">期日</th><th class="p-3 text-left">内容</th><th class="p-3 w-20"></th></tr>
+                        <tr><th class="p-3 w-12"></th><th class="p-3 w-36 text-left">期日</th><th class="p-3 text-left">内容</th><th class="p-3 w-32"></th></tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         ${all.map(t => `<tr class="hover:bg-slate-50 transition-colors">
-                            <td class="p-3 text-center"><input type="checkbox" ${t.completed ? 'checked' : ''} class="w-5 h-5 cursor-pointer accent-indigo-600" onchange="toggleTask('${t.pId}','${t.id}')"></td>
+                            <td class="p-3 text-center cursor-pointer" onclick="toggleTask('${t.pId}','${t.id}')">
+                                <input type="checkbox" ${t.completed ? 'checked' : ''} class="w-5 h-5 accent-indigo-600 pointer-events-none">
+                            </td>
                             <td class="p-3 text-xs sm:text-sm">
                                 <input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[140px] transition-all text-slate-600">
                             </td>
@@ -978,7 +981,10 @@
                                 <div class="text-xs font-bold text-slate-400 mb-0.5">${t.pName}</div>
                                 <div class="font-medium group-hover:text-indigo-700 transition-colors ${t.completed?'line-through text-slate-400':''}">${t.name}</div>
                             </td>
-                            <td class="p-3 text-right"><a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName)}" target="_blank" class="text-xl hover:opacity-70 transition block text-center" title="Googleカレンダーに追加">📅</a></td>
+                            <td class="p-3 text-right space-x-1 flex-nowrap whitespace-nowrap">
+                                <button onclick="deleteTask('${t.pId}','${t.id}')" class="hover:bg-slate-200 p-1.5 rounded transition text-slate-400 hover:text-red-500" title="タスクを削除">🗑️</button>
+                                <a href="${window.getGoogleCalendarUrl(t.name, t.dueDate, t.pName)}" target="_blank" class="text-xl hover:opacity-70 transition inline-block p-1.5 text-center" title="Googleカレンダーに追加">📅</a>
+                            </td>
                         </tr>`).join('')}
                     </tbody>
                 </table>
