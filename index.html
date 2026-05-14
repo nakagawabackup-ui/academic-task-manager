@@ -964,7 +964,15 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                             <div>名称: <input type="text" id="editName_${proj.id}" value="${proj.name}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
                             <div class="md:col-span-2">タイトル: <input type="text" id="editTitle_${proj.id}" value="${proj.presentationTitle || ''}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
+                            ${(proj.projectType === 'conference' || proj.projectType === 'paper') ? `
+                            <div>査読: <select id="editPeerReview_${proj.id}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500">
+                                <option value="査読有" ${proj.peerReview === '査読有' ? 'selected' : ''}>査読有</option>
+                                <option value="査読無" ${proj.peerReview !== '査読有' ? 'selected' : ''}>査読無</option>
+                            </select></div>
+                            <div class="md:col-span-2">URL (公式サイト等): <input type="url" id="editUrl_${proj.id}" value="${proj.url || ''}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
+                            ` : `
                             <div class="md:col-span-3">URL (公式サイト等): <input type="url" id="editUrl_${proj.id}" value="${proj.url || ''}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
+                            `}
                             <div class="md:col-span-3">メモ: <textarea id="editMemo_${proj.id}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500" rows="2">${proj.memo || ''}</textarea></div>
                             <div>開始/〆切: <input type="date" id="editStartDate_${proj.id}" value="${proj.startDate}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
                         </div>
@@ -976,8 +984,9 @@
                                 <svg class="w-4 h-4 transition-transform ${proj.isExpanded?'':'rotate-[-90deg]'}" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                             </button>
                             <div>
-                                <h3 class="text-lg font-black flex items-center gap-1">
+                                <h3 class="text-lg font-black flex items-center flex-wrap gap-1">
                                     ${icon} ${proj.name}
+                                    ${proj.projectType === 'conference' || proj.projectType === 'paper' ? `<span class="text-[10px] px-1.5 py-0.5 rounded border ${proj.peerReview === '査読有' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200'} ml-2 font-bold">${proj.peerReview || '査読無'}</span>` : ''}
                                     ${proj.url ? `<a href="${proj.url}" target="_blank" onclick="event.stopPropagation()" class="ml-2 text-slate-400 hover:text-blue-600 transition" title="公式サイトを開く"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>` : ''}
                                 </h3>
                                 <div class="text-xs text-slate-500 mt-1">${proj.startDate} | ${proj.presentationTitle || ''}</div>
@@ -999,7 +1008,7 @@
                     <div class="${proj.isExpanded && !proj.isEditing?'block':'hidden'} border-t border-slate-100">
                         <table class="w-full text-sm sm:text-base">
                             <tbody class="divide-y divide-slate-100">
-                                ${proj.tasks.map(t => `<tr class="${t.completed?'bg-slate-50':''} transition-colors">
+                                ${proj.tasks.filter(t => !(t.completed && isOldTask(t.completedAt))).map(t => `<tr class="${t.completed?'bg-slate-50':''} transition-colors">
                                     <td class="p-3 w-12 text-center cursor-pointer" onclick="toggleTask('${proj.id}','${t.id}')">
                                         <div class="w-5 h-5 rounded flex items-center justify-center border ${t.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-slate-300 bg-white'} transition-colors mx-auto">
                                             ${t.completed ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>' : ''}
