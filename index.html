@@ -540,7 +540,27 @@
 
         function fallbackInit() {
             const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-            if (savedData) { try { window.projects = JSON.parse(savedData); } catch(e) { window.projects = []; } }
+            if (savedData) { 
+                try { 
+                    window.projects = JSON.parse(savedData); 
+                    // 既存プロジェクトへのマイグレーション（査読結果通知の自動追加）
+                    let migrated = false;
+                    window.projects.forEach(p => {
+                        if ((p.projectType === 'conference' || p.projectType === 'paper') && p.peerReview === '査読有') {
+                            if (!p.tasks.some(t => t.name === '査読結果通知')) {
+                                let d = new Date(p.startDate);
+                                d.setMonth(d.getMonth() + 2);
+                                p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: d.toISOString().split('T')[0], completed: false });
+                                p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+                                migrated = true;
+                            }
+                        }
+                    });
+                    if (migrated) {
+                        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(window.projects));
+                    }
+                } catch(e) { window.projects = []; } 
+            }
             window.render();
         }
 
@@ -549,7 +569,21 @@
             const projectsRef = collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'projects');
             onSnapshot(projectsRef, (snapshot) => {
                 let synced = [];
-                snapshot.forEach(doc => { synced.push({ id: doc.id, ...doc.data() }); });
+                snapshot.forEach(document => { 
+                    let p = { id: document.id, ...document.data() }; 
+                    // 既存の同期データへのマイグレーション（査読結果通知の自動追加）
+                    if ((p.projectType === 'conference' || p.projectType === 'paper') && p.peerReview === '査読有') {
+                        if (!p.tasks.some(t => t.name === '査読結果通知')) {
+                            let d = new Date(p.startDate);
+                            d.setMonth(d.getMonth() + 2);
+                            p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: d.toISOString().split('T')[0], completed: false });
+                            p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+                            // Firestore側のデータも更新
+                            setDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'projects', p.id), p);
+                        }
+                    }
+                    synced.push(p); 
+                });
                 window.projects = synced;
                 window.render();
             });
@@ -679,7 +713,7 @@
                 });
                 if (peerReview === '査読有') {
                     let reviewNoticeDate = new Date(startDate);
-                    if (type === 'conference') reviewNoticeDate.setDate(reviewNoticeDate.getDate() - 90);
+                    // 締め切り(startDate)の2ヶ月後に設定
                     reviewNoticeDate.setMonth(reviewNoticeDate.getMonth() + 2);
                     tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: reviewNoticeDate.toISOString().split('T')[0], completed: false });
                 }
