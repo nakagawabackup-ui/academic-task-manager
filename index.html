@@ -543,14 +543,24 @@
             if (savedData) { 
                 try { 
                     window.projects = JSON.parse(savedData); 
-                    // 既存プロジェクトへのマイグレーション（査読結果通知の自動追加）
+                    // 既存プロジェクトへのマイグレーション（査読結果通知の自動追加・日付修正）
                     let migrated = false;
                     window.projects.forEach(p => {
                         if ((p.projectType === 'conference' || p.projectType === 'paper') && p.peerReview === '査読有') {
-                            if (!p.tasks.some(t => t.name === '査読結果通知')) {
-                                let d = new Date(p.startDate);
-                                d.setMonth(d.getMonth() + 2);
-                                p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: d.toISOString().split('T')[0], completed: false });
+                            let d = new Date(p.startDate);
+                            if (p.projectType === 'conference') {
+                                d.setDate(d.getDate() - 90); // 発表申し込み
+                            }
+                            d.setMonth(d.getMonth() + 2);
+                            const correctDueDate = d.toISOString().split('T')[0];
+
+                            const existingTask = p.tasks.find(t => t.name === '査読結果通知');
+                            if (!existingTask) {
+                                p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: correctDueDate, completed: false });
+                                p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+                                migrated = true;
+                            } else if (existingTask.dueDate !== correctDueDate) {
+                                existingTask.dueDate = correctDueDate;
                                 p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
                                 migrated = true;
                             }
@@ -571,12 +581,26 @@
                 let synced = [];
                 snapshot.forEach(document => { 
                     let p = { id: document.id, ...document.data() }; 
-                    // 既存の同期データへのマイグレーション（査読結果通知の自動追加）
+                    // 既存の同期データへのマイグレーション（査読結果通知の自動追加・日付修正）
                     if ((p.projectType === 'conference' || p.projectType === 'paper') && p.peerReview === '査読有') {
-                        if (!p.tasks.some(t => t.name === '査読結果通知')) {
-                            let d = new Date(p.startDate);
-                            d.setMonth(d.getMonth() + 2);
-                            p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: d.toISOString().split('T')[0], completed: false });
+                        let d = new Date(p.startDate);
+                        if (p.projectType === 'conference') {
+                            d.setDate(d.getDate() - 90); // 発表申し込み
+                        }
+                        d.setMonth(d.getMonth() + 2);
+                        const correctDueDate = d.toISOString().split('T')[0];
+
+                        const existingTask = p.tasks.find(t => t.name === '査読結果通知');
+                        let needsUpdate = false;
+                        if (!existingTask) {
+                            p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: correctDueDate, completed: false });
+                            needsUpdate = true;
+                        } else if (existingTask.dueDate !== correctDueDate) {
+                            existingTask.dueDate = correctDueDate;
+                            needsUpdate = true;
+                        }
+                        
+                        if (needsUpdate) {
                             p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
                             // Firestore側のデータも更新
                             setDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'projects', p.id), p);
@@ -713,7 +737,11 @@
                 });
                 if (peerReview === '査読有') {
                     let reviewNoticeDate = new Date(startDate);
-                    // 締め切り(startDate)の2ヶ月後に設定
+                    if (type === 'conference') {
+                        // 学会の場合は「発表申し込み(90日前)」の2ヶ月後
+                        reviewNoticeDate.setDate(reviewNoticeDate.getDate() - 90);
+                    }
+                    // 論文の場合は目標投稿日(0日前)の2ヶ月後となる
                     reviewNoticeDate.setMonth(reviewNoticeDate.getMonth() + 2);
                     tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: reviewNoticeDate.toISOString().split('T')[0], completed: false });
                 }
