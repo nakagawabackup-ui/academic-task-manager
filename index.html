@@ -35,14 +35,14 @@
             </div>
 
             <div id="content-area" class="p-6">
-                <!-- コンテンツがここに表示されます -->
+                <!-- コンテンツ描画エリア -->
             </div>
         </div>
     </div>
 
     <script>
-        // データセット
-        const data = {
+        // データ構造の復元
+        const projectData = {
             timeline: [
                 { title: "日本語文法講義の準備", date: "2026-05-25" },
                 { title: "研究論文の初稿締切", date: "2026-06-10" }
@@ -61,27 +61,38 @@
         window.timelineFilter = 'all';
 
         function render() {
-            // タブ・フィルターの表示更新
+            // タブの見た目更新
             ['timeline', 'project', 'vault'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) el.className = `flex-1 py-3 text-center transition-colors ${window.currentTab === t ? 'tab-active' : 'tab-inactive'}`;
             });
 
+            // フィルターの表示切替
             const filterDiv = document.getElementById('timeline-filters');
-            filterDiv.style.display = window.currentTab === 'timeline' ? 'flex' : 'none';
+            if (filterDiv) filterDiv.style.display = window.currentTab === 'timeline' ? 'flex' : 'none';
 
             // コンテンツの描画
             const content = document.getElementById('content-area');
-            const items = data[window.currentTab] || [];
+            const items = projectData[window.currentTab] || [];
             
-            content.innerHTML = items.length > 0 
-                ? items.map(item => `<div class="p-4 border-b last:border-0 hover:bg-slate-50">${Object.values(item).join(' - ')}</div>`).join('')
-                : `<div class="p-4 text-center text-slate-400">データがありません</div>`;
+            if (items.length > 0) {
+                content.innerHTML = items.map(item => `
+                    <div class="p-4 border-b last:border-0 hover:bg-slate-50">
+                        <div class="font-bold text-slate-800">${Object.values(item)[0]}</div>
+                        <div class="text-sm text-slate-500">${Object.values(item)[1] || ''}</div>
+                    </div>
+                `).join('');
+            } else {
+                content.innerHTML = `<div class="p-4 text-center text-slate-400">データがありません</div>`;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             ['timeline', 'project', 'vault'].forEach(t => {
-                document.getElementById(`tab-${t}`).addEventListener('click', () => { window.currentTab = t; render(); });
+                document.getElementById(`tab-${t}`).addEventListener('click', () => {
+                    window.currentTab = t;
+                    render();
+                });
             });
             render();
         });
