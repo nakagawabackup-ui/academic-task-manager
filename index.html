@@ -66,7 +66,8 @@
                     <button id="logout-btn" type="button" class="bg-slate-50 text-slate-600 px-4 py-1.5 rounded text-sm font-bold hover:bg-slate-100 transition border border-slate-200 hidden">ログアウト</button>
                 </div>
                 <div id="overview-stats" class="text-right text-sm text-slate-600 font-bold bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 hidden md:block w-full lg:w-auto">
-                    </div>
+                    <!-- stats injected here -->
+                </div>
             </div>
         </header>
 
@@ -436,7 +437,7 @@
         }
 
         function isOldTask(completedAt) {
-            if (!completedAt) return true; 
+            if (!completedAt) return false; 
             return completedAt < getJSTDateStr();
         }
 
@@ -881,8 +882,19 @@
         };
 
         window.updateDate = async (pid, tid, val) => {
-            const p = window.projects.find(x => x.id === pid);
-            if(p){ const t = p.tasks.find(x => x.id === tid); if(t){ t.dueDate = val; p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)); window.render(); await saveProject(p); } }
+            try {
+                const p = window.projects.find(x => x.id === pid);
+                if(p){ 
+                    const t = p.tasks.find(x => x.id === tid); 
+                    // 値が実際に変更された時のみ処理を実行（余計な再描画によるカレンダー強制終了を防ぐ）
+                    if(t && t.dueDate !== val){ 
+                        t.dueDate = val; 
+                        p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)); 
+                        window.render(); 
+                        await saveProject(p); 
+                    } 
+                }
+            } catch(e) { console.error("updateDate error", e); }
         };
 
         window.deleteTask = async (pid, tid) => {
@@ -1122,7 +1134,7 @@
                     </div>` : `
                     <div class="p-4 flex flex-col sm:flex-row justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors" onclick="toggleProjectExpand('${proj.id}')">
                         <div class="flex items-center gap-3">
-                            <button class="bg-blue-500 hover:bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded shadow-sm transition">
+                            <button type="button" class="bg-blue-500 hover:bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded shadow-sm transition">
                                 <svg class="w-4 h-4 transition-transform ${proj.isExpanded?'':'rotate-[-90deg]'}" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                             </button>
                             <div>
@@ -1136,10 +1148,10 @@
                         </div>
                         <div class="flex items-center gap-4 mt-3 sm:mt-0 font-bold">
                             <span class="text-sm">${prog}%</span>
-                            <button onclick="event.stopPropagation();startEdit('${proj.id}')" class="text-orange-500 hover:text-orange-700 transition" title="編集">
+                            <button type="button" onclick="event.stopPropagation();startEdit('${proj.id}')" class="text-orange-500 hover:text-orange-700 transition" title="編集">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                             </button>
-                            <button onclick="event.stopPropagation();changeProjectStatus('${proj.id}', 'pending')" class="text-blue-500 hover:text-blue-700 transition" title="保留">
+                            <button type="button" onclick="event.stopPropagation();changeProjectStatus('${proj.id}', 'pending')" class="text-blue-500 hover:text-blue-700 transition" title="保留">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </button>
                             <button type="button" onclick="event.stopPropagation();deleteProject('${proj.id}')" class="text-slate-400 hover:text-red-500 transition" title="削除">
@@ -1157,7 +1169,8 @@
                                         </div>
                                     </td>
                                     <td class="p-3 w-36 text-xs sm:text-sm text-slate-400">
-                                        <input type="date" value="${t.dueDate}" onchange="updateDate('${proj.id}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[140px] transition-all ${t.completed?'opacity-50':''}">
+                                        <!-- 日付の変更時に不必要な再描画を防ぐため、updateDate側で値の差分チェックをしています -->
+                                        <input type="date" value="${window.escapeHtml(t.dueDate)}" onclick="event.stopPropagation()" onchange="updateDate('${proj.id}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[140px] transition-all ${t.completed?'opacity-50':''}">
                                     </td>
                                     <td class="p-3 group">
                                         <input type="text" value="${window.escapeHtml(t.name)}" readonly class="task-name-input w-full bg-transparent outline-none font-bold transition-colors ${t.completed?'line-through text-slate-400 font-medium':'text-slate-700'}">
@@ -1273,7 +1286,7 @@
                             </td>
                             <td class="p-3 text-xs sm:text-sm">
                                 <div class="flex items-center gap-1">
-                                    <input type="date" value="${t.dueDate}" onchange="updateDate('${t.pId}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[120px] transition-all text-slate-700 font-mono">
+                                    <input type="date" value="${window.escapeHtml(t.dueDate)}" onclick="event.stopPropagation()" onchange="updateDate('${t.pId}','${t.id}', this.value)" class="bg-transparent border border-transparent hover:border-slate-300 outline-none cursor-pointer hover:bg-white p-1 rounded w-full max-w-[120px] transition-all text-slate-700 font-mono">
                                 </div>
                             </td>
                             <td class="p-3 group">
