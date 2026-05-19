@@ -22,70 +22,69 @@
 
         <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
             <div class="flex bg-slate-50 border-b border-slate-200">
-                <div id="tab-timeline" onclick="switchTab('timeline')" class="flex-1 py-3 text-center transition-colors tab-active">タイムライン</div>
-                <div id="tab-project" onclick="switchTab('project')" class="flex-1 py-3 text-center transition-colors tab-inactive">プロジェクト管理</div>
-                <div id="tab-vault" onclick="switchTab('vault')" class="flex-1 py-3 text-center transition-colors tab-inactive">保管庫</div>
+                <div id="tab-timeline" class="flex-1 py-3 text-center transition-colors tab-active">タイムライン</div>
+                <div id="tab-project" class="flex-1 py-3 text-center transition-colors tab-inactive">プロジェクト管理</div>
+                <div id="tab-vault" class="flex-1 py-3 text-center transition-colors tab-inactive">保管庫</div>
             </div>
 
             <div id="timeline-filters" class="p-3 border-b bg-white flex items-center gap-2">
                 <span class="text-xs font-bold text-slate-400 mr-2">表示期間:</span>
-                <button onclick="setTimelineFilter('all')" id="filter-all" class="px-3 py-1 text-xs font-bold rounded-full filter-btn-active">すべて</button>
-                <button onclick="setTimelineFilter('1m')" id="filter-1m" class="px-3 py-1 text-xs font-bold rounded-full filter-btn-inactive">1か月以内</button>
-                <button onclick="setTimelineFilter('2m')" id="filter-2m" class="px-3 py-1 text-xs font-bold rounded-full filter-btn-inactive">2か月以内</button>
+                <button id="filter-all" class="px-3 py-1 text-xs font-bold rounded-full filter-btn-active">すべて</button>
+                <button id="filter-1m" class="px-3 py-1 text-xs font-bold rounded-full filter-btn-inactive">1か月以内</button>
+                <button id="filter-2m" class="px-3 py-1 text-xs font-bold rounded-full filter-btn-inactive">2か月以内</button>
             </div>
 
             <div id="content-area" class="p-6">
-                <div class="text-center py-20 text-slate-400">データを読み込み中...</div>
+                <!-- コンテンツがここに表示されます -->
             </div>
         </div>
     </div>
 
     <script>
-        // グローバルな状態管理
+        // データセット
+        const data = {
+            timeline: [
+                { title: "日本語文法講義の準備", date: "2026-05-25" },
+                { title: "研究論文の初稿締切", date: "2026-06-10" }
+            ],
+            project: [
+                { name: "日本語教育カリキュラム開発", status: "進行中" },
+                { name: "学会発表用資料作成", status: "計画中" }
+            ],
+            vault: [
+                { item: "過去の授業リソース集" },
+                { item: "研究用アーカイブデータ" }
+            ]
+        };
+
         window.currentTab = 'timeline';
         window.timelineFilter = 'all';
 
-        window.switchTab = function(tabName) {
-            console.log("Switching to:", tabName);
-            window.currentTab = tabName;
-            render();
-        };
-
-        window.setTimelineFilter = function(filterName) {
-            window.timelineFilter = filterName;
-            render();
-        };
-
         function render() {
-            // タブのクラスリセットと適用
-            const tabs = ['timeline', 'project', 'vault'];
-            tabs.forEach(t => {
+            // タブ・フィルターの表示更新
+            ['timeline', 'project', 'vault'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
-                if (window.currentTab === t) {
-                    el.className = 'flex-1 py-3 text-center transition-colors tab-active';
-                } else {
-                    el.className = 'flex-1 py-3 text-center transition-colors tab-inactive';
-                }
+                if (el) el.className = `flex-1 py-3 text-center transition-colors ${window.currentTab === t ? 'tab-active' : 'tab-inactive'}`;
             });
 
-            // タイムラインフィルターの表示制御
             const filterDiv = document.getElementById('timeline-filters');
-            if (window.currentTab === 'timeline') {
-                filterDiv.style.display = 'flex';
-                document.getElementById('filter-all').className = `px-3 py-1 text-xs font-bold rounded-full ${window.timelineFilter === 'all' ? 'filter-btn-active' : 'filter-btn-inactive'}`;
-                document.getElementById('filter-1m').className = `px-3 py-1 text-xs font-bold rounded-full ${window.timelineFilter === '1m' ? 'filter-btn-active' : 'filter-btn-inactive'}`;
-                document.getElementById('filter-2m').className = `px-3 py-1 text-xs font-bold rounded-full ${window.timelineFilter === '2m' ? 'filter-btn-active' : 'filter-btn-inactive'}`;
-            } else {
-                filterDiv.style.display = 'none';
-            }
+            filterDiv.style.display = window.currentTab === 'timeline' ? 'flex' : 'none';
 
-            // コンテンツの表示
+            // コンテンツの描画
             const content = document.getElementById('content-area');
-            content.innerHTML = `<div class="text-center py-10 font-bold text-slate-600">現在のタブ: ${window.currentTab}</div>`;
+            const items = data[window.currentTab] || [];
+            
+            content.innerHTML = items.length > 0 
+                ? items.map(item => `<div class="p-4 border-b last:border-0 hover:bg-slate-50">${Object.values(item).join(' - ')}</div>`).join('')
+                : `<div class="p-4 text-center text-slate-400">データがありません</div>`;
         }
 
-        // ページ読み込み時に実行
-        render();
+        document.addEventListener('DOMContentLoaded', () => {
+            ['timeline', 'project', 'vault'].forEach(t => {
+                document.getElementById(`tab-${t}`).addEventListener('click', () => { window.currentTab = t; render(); });
+            });
+            render();
+        });
     </script>
 </body>
 </html>
