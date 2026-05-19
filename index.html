@@ -43,27 +43,12 @@
     </div>
 
     <script>
-        // データの定義
-        const projectData = {
-            timeline: [
-                { title: "日本語文法講義の準備", date: "2026-05-25" },
-                { title: "研究論文の初稿締切", date: "2026-06-10" }
-            ],
-            project: [
-                { name: "日本語教育カリキュラム開発", status: "進行中" },
-                { name: "学会発表用資料作成", status: "計画中" }
-            ],
-            vault: [
-                { item: "過去の授業リソース集" },
-                { item: "研究用アーカイブデータ" }
-            ]
-        };
-
+        // 状態管理
         window.currentTab = 'timeline';
-        window.timelineFilter = 'all';
 
+        // レンダリング関数
         function render() {
-            // タブの見た目更新
+            // タブの切り替え表示
             ['timeline', 'project', 'vault'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) el.className = `flex-1 py-3 text-center transition-colors ${window.currentTab === t ? 'tab-active' : 'tab-inactive'}`;
@@ -73,44 +58,20 @@
             const filterDiv = document.getElementById('timeline-filters');
             if (filterDiv) filterDiv.style.display = window.currentTab === 'timeline' ? 'flex' : 'none';
 
-            // コンテンツの描画
+            // コンテンツの描画（データ部分は以前の空の状態にリセット）
             const content = document.getElementById('content-area');
-            const items = projectData[window.currentTab] || [];
-            
-            if (items.length > 0) {
-                content.innerHTML = items.map(item => {
-                    const values = Object.values(item);
-                    return `
-                        <div class="p-4 border-b last:border-0 hover:bg-slate-50 transition-colors">
-                            <div class="font-bold text-slate-800">${values[0]}</div>
-                            <div class="text-sm text-slate-500">${values[1] || ''}</div>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                content.innerHTML = `<div class="p-4 text-center text-slate-400">データがありません</div>`;
-            }
+            if (content) content.innerHTML = '';
         }
 
+        // イベントリスナー
         document.addEventListener('DOMContentLoaded', () => {
-            // タブクリックイベント
             ['timeline', 'project', 'vault'].forEach(t => {
-                document.getElementById(`tab-${t}`).addEventListener('click', () => {
+                const el = document.getElementById(`tab-${t}`);
+                if (el) el.addEventListener('click', () => {
                     window.currentTab = t;
                     render();
                 });
             });
-
-            // フィルタークリックイベント
-            ['all', '1m', '2m'].forEach(f => {
-                const btn = document.getElementById(`filter-${f}`);
-                if (btn) btn.addEventListener('click', () => {
-                    window.timelineFilter = f;
-                    // 必要に応じてフィルタリングロジックをここに追加
-                    render();
-                });
-            });
-            
             render();
         });
     </script>
