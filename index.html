@@ -23,13 +23,13 @@
         <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
             <!-- タブ切り替えボタン群 -->
             <div class="flex bg-slate-50 border-b border-slate-200">
-                <div id="tab-timeline" onclick="switchTab('timeline')" class="flex-1 py-3 text-center tab-active transition-colors">タイムライン</div>
-                <div id="tab-project" onclick="switchTab('project')" class="flex-1 py-3 text-center tab-inactive transition-colors">プロジェクト管理</div>
-                <div id="tab-vault" onclick="switchTab('vault')" class="flex-1 py-3 text-center tab-inactive transition-colors">保管庫</div>
+                <div id="tab-timeline" onclick="switchTab('timeline')" class="flex-1 py-3 text-center transition-colors tab-active">タイムライン</div>
+                <div id="tab-project" onclick="switchTab('project')" class="flex-1 py-3 text-center transition-colors tab-inactive">プロジェクト管理</div>
+                <div id="tab-vault" onclick="switchTab('vault')" class="flex-1 py-3 text-center transition-colors tab-inactive">保管庫</div>
             </div>
 
             <!-- フィルター -->
-            <div id="timeline-filters" class="p-3 border-b bg-white flex items-center gap-2 hidden">
+            <div id="timeline-filters" class="p-3 border-b bg-white flex items-center gap-2">
                 <span class="text-xs font-bold text-slate-400 mr-2">表示期間:</span>
                 <button onclick="setTimelineFilter('all')" id="filter-all" class="px-3 py-1 text-xs font-bold rounded-full filter-btn-active">すべて</button>
                 <button onclick="setTimelineFilter('1m')" id="filter-1m" class="px-3 py-1 text-xs font-bold rounded-full filter-btn-inactive">1か月以内</button>
@@ -45,7 +45,6 @@
     <script>
         window.currentTab = 'timeline';
         window.timelineFilter = 'all';
-        window.projects = []; // 仮データ
 
         // タブ切り替え関数
         window.switchTab = function(tabName) {
@@ -65,9 +64,9 @@
             tabs.forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (window.currentTab === t) {
-                    el.className = 'flex-1 py-3 text-center tab-active transition-colors';
+                    el.className = 'flex-1 py-3 text-center transition-colors tab-active';
                 } else {
-                    el.className = 'flex-1 py-3 text-center tab-inactive transition-colors';
+                    el.className = 'flex-1 py-3 text-center transition-colors tab-inactive';
                 }
             });
 
