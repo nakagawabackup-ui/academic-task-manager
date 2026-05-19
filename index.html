@@ -321,6 +321,16 @@
                 <div class="text-center py-20 text-slate-400 font-bold text-lg">データを読み込み中...</div>
             </div>
         </div>
+
+        <div id="custom-modal" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-center">
+                <p id="custom-modal-text" class="text-slate-800 font-bold mb-6 whitespace-pre-wrap"></p>
+                <div class="flex justify-center gap-3">
+                    <button id="custom-modal-cancel" class="px-5 py-2 rounded bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition">キャンセル</button>
+                    <button id="custom-modal-ok" class="px-5 py-2 rounded bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition">OK</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -448,11 +458,55 @@
             }
         };
 
-        window.activateTestAdmin = () => {
+        // カスタムアラート・コンファームの実装
+        window.customAlert = (msg) => {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('custom-modal');
+                document.getElementById('custom-modal-text').innerText = msg;
+                document.getElementById('custom-modal-cancel').classList.add('hidden');
+                const okBtn = document.getElementById('custom-modal-ok');
+                okBtn.innerText = 'OK';
+                modal.classList.remove('hidden');
+                
+                const cleanup = () => {
+                    modal.classList.add('hidden');
+                    okBtn.removeEventListener('click', onOk);
+                    resolve();
+                };
+                const onOk = () => cleanup();
+                okBtn.addEventListener('click', onOk);
+            });
+        };
+
+        window.customConfirm = (msg) => {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('custom-modal');
+                document.getElementById('custom-modal-text').innerText = msg;
+                const cancelBtn = document.getElementById('custom-modal-cancel');
+                const okBtn = document.getElementById('custom-modal-ok');
+                cancelBtn.classList.remove('hidden');
+                okBtn.innerText = 'はい';
+                modal.classList.remove('hidden');
+                
+                const cleanup = (result) => {
+                    modal.classList.add('hidden');
+                    okBtn.removeEventListener('click', onOk);
+                    cancelBtn.removeEventListener('click', onCancel);
+                    resolve(result);
+                };
+                const onOk = () => cleanup(true);
+                const onCancel = () => cleanup(false);
+                
+                okBtn.addEventListener('click', onOk);
+                cancelBtn.addEventListener('click', onCancel);
+            });
+        };
+
+        window.activateTestAdmin = async () => {
             window.forceAdmin = true;
             updateAdminStatus();
             window.render();
-            alert("テスト用の管理者モードをONにしました。\nプロジェクト管理タブを開き、各プロジェクトの詳細を開くと「⬆️ アップロード」ボタンが表示されます。");
+            await window.customAlert("テスト用の管理者モードをONにしました。\nプロジェクト管理タブを開き、各プロジェクトの詳細を開くと「⬆️ アップロード」ボタンが表示されます。");
         };
 
         function updateAdminStatus() {
@@ -507,7 +561,7 @@
                 try {
                     await signInWithPopup(auth, provider);
                 } catch (error) {
-                    alert("ログインがブロックされました。");
+                    await window.customAlert("ログインがブロックされました。");
                 }
             };
             
@@ -700,14 +754,14 @@
                 if (customMode === 'single') {
                     startDate = document.getElementById('simCustomSingleDate').value;
                     endDate = startDate;
-                    if (!name || !startDate) return alert('必須項目を入力してください。');
+                    if (!name || !startDate) return await window.customAlert('必須項目を入力してください。');
                     customTasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: `${name} (実施日/本番)`, dueDate: startDate, completed: false });
                 } else {
                     startDate = document.getElementById('simCustomStartDate').value;
                     endDate = document.getElementById('simCustomEndDate').value;
                     const freq = document.getElementById('simCustomFrequency').value;
-                    if (!name || !startDate || !endDate) return alert('必須項目（初回と最終日）を入力してください。');
-                    if (new Date(endDate) < new Date(startDate)) return alert('最終日は初回の日付以降にしてください。');
+                    if (!name || !startDate || !endDate) return await window.customAlert('必須項目（初回と最終日）を入力してください。');
+                    if (new Date(endDate) < new Date(startDate)) return await window.customAlert('最終日は初回の日付以降にしてください。');
 
                     let curr = new Date(startDate);
                     const end = new Date(endDate);
@@ -724,7 +778,7 @@
                 }
             }
 
-            if (!name || !startDate) return alert('必須項目を入力してください。');
+            if (!name || !startDate) return await window.customAlert('必須項目を入力してください。');
 
             let tasks = [];
             if (type === 'custom') {
@@ -770,7 +824,7 @@
         };
 
         window.duplicateProject = async (pid) => {
-            if(!confirm("この情報をコピーして新しい予定を作成しますか？")) return;
+            if(!(await window.customConfirm("この情報をコピーして新しい予定を作成しますか？"))) return;
             const orig = window.projects.find(x => x.id === pid);
             if(orig){
                 const newTasks = orig.tasks.map(t => ({ ...t, id: 't_' + Math.random().toString(36).substr(2, 9), completed: false, completedAt: null }));
@@ -784,7 +838,7 @@
             const p = window.projects.find(x => x.id === pid);
             if(p){
                 const msg = newStatus === 'completed' ? "このプロジェクトを「完了」として保管庫へ移動しますか？" : newStatus === 'pending' ? "このプロジェクトを「保留」として保管庫へ移動しますか？" : "復元しますか？";
-                if(!confirm(msg)) return;
+                if(!(await window.customConfirm(msg))) return;
                 p.status = newStatus;
                 window.render(); await saveProject(p);
             }
@@ -829,7 +883,7 @@
         };
 
         window.deleteTask = async (pid, tid) => {
-            if(!confirm("このタスクを削除しますか？")) return;
+            if(!(await window.customConfirm("このタスクを削除しますか？"))) return;
             const p = window.projects.find(x => x.id === pid);
             if(p){ p.tasks = p.tasks.filter(x => x.id !== tid); window.render(); await saveProject(p); }
         };
@@ -838,14 +892,14 @@
             const n = document.getElementById(`cName_${pid}`);
             const startDateInput = document.getElementById(`cDate_${pid}`);
             const isRecur = document.getElementById(`cRecurToggle_${pid}`)?.checked;
-            if(!n.value || !startDateInput.value) return alert('タスク名と日付を入力してください');
+            if(!n.value || !startDateInput.value) return await window.customAlert('タスク名と日付を入力してください');
             const p = window.projects.find(x => x.id === pid);
             if(!p) return;
             let newTasks = [];
             if (isRecur) {
                 const endDateInput = document.getElementById(`cEndDate_${pid}`);
                 const freq = document.getElementById(`cFreq_${pid}`).value;
-                if(!endDateInput.value) return alert('最終日を入力してください');
+                if(!endDateInput.value) return await window.customAlert('最終日を入力してください');
                 let curr = new Date(startDateInput.value);
                 const end = new Date(endDateInput.value);
                 let count = 1;
@@ -867,7 +921,7 @@
         window.addAttachmentLink = async (pid) => {
             const nameInput = document.getElementById(`attLinkName_${pid}`);
             const urlInput = document.getElementById(`attLinkUrl_${pid}`);
-            if(!nameInput.value || !urlInput.value) return alert('表示名とURLを入力してください');
+            if(!nameInput.value || !urlInput.value) return await window.customAlert('表示名とURLを入力してください');
             const p = window.projects.find(x => x.id === pid); if(!p) return;
             if(!p.attachments) p.attachments = [];
             p.attachments.push({ id: 'att_' + Math.random().toString(36).substr(2, 9), name: nameInput.value, url: urlInput.value, type: 'link' });
@@ -880,7 +934,7 @@
             if(!p || !window.isAdmin) return;
             
             if (!currentUser) {
-                alert("ファイルアップロードにはデータベースとの通信環境が必要です。\nページを再読み込みするか、Googleログインをお試しください。");
+                await window.customAlert("ファイルアップロードにはデータベースとの通信環境が必要です。\nページを再読み込みするか、Googleログインをお試しください。");
                 inputEl.value = '';
                 return;
             }
@@ -897,12 +951,12 @@
                 await saveProject(p); window.render();
             } catch (error) {
                 console.error("アップロードエラー:", error);
-                alert("アップロード失敗。Storageの設定や権限を確認してください。");
+                await window.customAlert("アップロード失敗。Storageの設定や権限を確認してください。");
             } finally { if(statusEl) statusEl.classList.add('hidden'); inputEl.value = ''; }
         };
 
         window.deleteAttachment = async (pid, attId) => {
-            if(!confirm('削除しますか？')) return;
+            if(!(await window.customConfirm('削除しますか？'))) return;
             const p = window.projects.find(x => x.id === pid); if(!p || !p.attachments) return;
             const att = p.attachments.find(a => a.id === attId);
             if (att.type === 'file' && att.storagePath && window.isAdmin && currentUser) {
@@ -918,33 +972,34 @@
         window.saveEdit = async (id) => {
             const p = window.projects.find(x => x.id === id);
             if(p){
-                p.name = document.getElementById(`editName_${id}`).value;
+                const nameEl = document.getElementById(`editName_${id}`); if(nameEl) p.name = nameEl.value;
                 const titleEl = document.getElementById(`editTitle_${id}`); if (titleEl) p.presentationTitle = titleEl.value;
                 const fmtEl = document.getElementById(`editFormat_${id}`); if (fmtEl) p.presentationFormat = fmtEl.value;
                 
-                // ★ 公式サイトURLの保存処理を追加
                 const urlEl = document.getElementById(`editUrl_${id}`); if (urlEl) p.url = urlEl.value;
                 
                 if (p.projectType === 'grant') {
-                    p.pi = document.getElementById(`editGrantPI_${id}`).value;
-                    p.coi = document.getElementById(`editGrantCoI_${id}`).value;
-                    p.collab = document.getElementById(`editGrantCollab_${id}`).value;
+                    const piEl = document.getElementById(`editGrantPI_${id}`); if(piEl) p.pi = piEl.value;
+                    const coiEl = document.getElementById(`editGrantCoI_${id}`); if(coiEl) p.coi = coiEl.value;
+                    const collabEl = document.getElementById(`editGrantCollab_${id}`); if(collabEl) p.collab = collabEl.value;
                 } else if (p.projectType === 'custom') {
-                    p.pi = document.getElementById(`editCustomPerson_${id}`).value; 
+                    const personEl = document.getElementById(`editCustomPerson_${id}`); if(personEl) p.pi = personEl.value; 
                 } else {
-                    p.presentationStatus = document.getElementById(`editStatus_${id}`).value; 
+                    const statusEl = document.getElementById(`editStatus_${id}`); if(statusEl) p.presentationStatus = statusEl.value; 
                 }
                 const prEl = document.getElementById(`editPeerReview_${id}`); if (prEl) p.peerReview = prEl.value;
                 const locEl = document.getElementById(`editLocation_${id}`); if (locEl) p.location = locEl.value;
-                p.memo = document.getElementById(`editMemo_${id}`).value;
-                p.startDate = document.getElementById(`editStartDate_${id}`).value;
+                const memoEl = document.getElementById(`editMemo_${id}`); if(memoEl) p.memo = memoEl.value;
+                
+                const startEl = document.getElementById(`editStartDate_${id}`); if(startEl) p.startDate = startEl.value;
                 const endEl = document.getElementById(`editEndDate_${id}`); p.endDate = endEl ? endEl.value || p.startDate : p.startDate;
+                
                 p.isEditing = false; window.render(); await saveProject(p);
             }
         };
 
         window.deleteProject = async (pid) => { 
-            if(confirm("完全に削除しますか？")){ 
+            if(await window.customConfirm("完全に削除しますか？")){ 
                 const pIdx = window.projects.findIndex(x=>x.id===pid); 
                 if(pIdx>=0){ 
                     const p = window.projects[pIdx];
@@ -959,7 +1014,7 @@
         };
 
         window.addReviewTasks = async function(pid) {
-            if(!confirm("査読対応タスクを追加しますか？")) return;
+            if(!(await window.customConfirm("査読対応タスクを追加しますか？"))) return;
             const p = window.projects.find(x => x.id === pid);
             if(p){
                 REVIEW_TASKS.forEach(tpl => {
