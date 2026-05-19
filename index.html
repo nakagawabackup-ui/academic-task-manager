@@ -7,9 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: sans-serif; background: #f8fafc; }
-        .tab-active { background-color: white; color: #0f172a; font-weight: 900; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); }
-        .tab-inactive { color: #64748b; font-weight: 500; cursor: pointer; }
-        .tab-inactive:hover { background-color: #f1f5f9; }
+        .tab-active { background-color: white !important; color: #0f172a !important; font-weight: 900 !important; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); }
+        .tab-inactive { color: #64748b !important; font-weight: 500 !important; cursor: pointer; background-color: #f8fafc; }
+        .tab-inactive:hover { background-color: #f1f5f9 !important; }
         .filter-btn-active { background-color: #312e81; color: white; }
         .filter-btn-inactive { background-color: #e2e8f0; color: #64748b; }
     </style>
@@ -21,14 +21,12 @@
         </header>
 
         <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
-            <!-- タブ切り替えボタン群 -->
             <div class="flex bg-slate-50 border-b border-slate-200">
                 <div id="tab-timeline" onclick="switchTab('timeline')" class="flex-1 py-3 text-center transition-colors tab-active">タイムライン</div>
                 <div id="tab-project" onclick="switchTab('project')" class="flex-1 py-3 text-center transition-colors tab-inactive">プロジェクト管理</div>
                 <div id="tab-vault" onclick="switchTab('vault')" class="flex-1 py-3 text-center transition-colors tab-inactive">保管庫</div>
             </div>
 
-            <!-- フィルター -->
             <div id="timeline-filters" class="p-3 border-b bg-white flex items-center gap-2">
                 <span class="text-xs font-bold text-slate-400 mr-2">表示期間:</span>
                 <button onclick="setTimelineFilter('all')" id="filter-all" class="px-3 py-1 text-xs font-bold rounded-full filter-btn-active">すべて</button>
@@ -43,23 +41,23 @@
     </div>
 
     <script>
+        // グローバルな状態管理
         window.currentTab = 'timeline';
         window.timelineFilter = 'all';
 
-        // タブ切り替え関数
         window.switchTab = function(tabName) {
+            console.log("Switching to:", tabName);
             window.currentTab = tabName;
             render();
         };
 
-        // フィルター切り替え関数
         window.setTimelineFilter = function(filterName) {
             window.timelineFilter = filterName;
             render();
         };
 
         function render() {
-            // タブの見た目更新
+            // タブのクラスリセットと適用
             const tabs = ['timeline', 'project', 'vault'];
             tabs.forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
@@ -73,12 +71,12 @@
             // タイムラインフィルターの表示制御
             const filterDiv = document.getElementById('timeline-filters');
             if (window.currentTab === 'timeline') {
-                filterDiv.classList.remove('hidden');
+                filterDiv.style.display = 'flex';
                 document.getElementById('filter-all').className = `px-3 py-1 text-xs font-bold rounded-full ${window.timelineFilter === 'all' ? 'filter-btn-active' : 'filter-btn-inactive'}`;
                 document.getElementById('filter-1m').className = `px-3 py-1 text-xs font-bold rounded-full ${window.timelineFilter === '1m' ? 'filter-btn-active' : 'filter-btn-inactive'}`;
                 document.getElementById('filter-2m').className = `px-3 py-1 text-xs font-bold rounded-full ${window.timelineFilter === '2m' ? 'filter-btn-active' : 'filter-btn-inactive'}`;
             } else {
-                filterDiv.classList.add('hidden');
+                filterDiv.style.display = 'none';
             }
 
             // コンテンツの表示
@@ -86,7 +84,7 @@
             content.innerHTML = `<div class="text-center py-10 font-bold text-slate-600">現在のタブ: ${window.currentTab}</div>`;
         }
 
-        // 初期描画
+        // ページ読み込み時に実行
         render();
     </script>
 </body>
