@@ -1122,6 +1122,9 @@
                     personInfo = proj.presentationStatus || '';
                 }
                 const displayPerson = personInfo ? ` | 👤 ${window.escapeHtml(personInfo)}` : '';
+                
+                // 開催地（場所）の表示用文字列を作成（論文以外で表示）
+                const displayLocation = (proj.location && proj.projectType !== 'paper') ? ` | 📍 ${window.escapeHtml(proj.location)}` : '';
 
                 html += `<div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                     ${proj.isEditing ? `
@@ -1149,6 +1152,11 @@
                             ` : `
                             <div class="md:col-span-3">URL (公式サイト等): <input type="url" id="editUrl_${proj.id}" value="${window.escapeHtml(proj.url)}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
                             `}
+
+                            ${proj.projectType !== 'grant' ? `
+                                <div class="md:col-span-3">${proj.projectType === 'paper' ? '規定メモ(文字数等)' : '開催地 / 場所'}: <input type="text" id="editLocation_${proj.id}" value="${window.escapeHtml(proj.location || '')}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
+                            ` : ''}
+
                             <div class="md:col-span-3">メモ: <textarea id="editMemo_${proj.id}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500" rows="2">${window.escapeHtml(proj.memo)}</textarea></div>
                             <div>開始/〆切: <input type="date" id="editStartDate_${proj.id}" value="${window.escapeHtml(proj.startDate)}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
                         </div>
@@ -1165,7 +1173,7 @@
                                     ${proj.projectType === 'conference' || proj.projectType === 'paper' ? `<span class="text-[10px] px-1.5 py-0.5 rounded border inline-flex items-center gap-0.5 ${proj.peerReview === '査読有' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200'} ml-2 font-bold">${proj.peerReview === '査読有' ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>' : ''}${window.escapeHtml(proj.peerReview) || '査読無'}</span>` : ''}
                                     ${proj.url ? `<a href="${proj.url}" target="_blank" onclick="event.stopPropagation()" class="ml-2 text-slate-400 hover:text-blue-600 transition" title="公式サイトを開く"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>` : ''}
                                 </h3>
-                                <div class="text-xs text-slate-500 mt-1">${window.escapeHtml(proj.startDate)}${displayPerson} | ${window.escapeHtml(proj.presentationTitle || '')}</div>
+                                <div class="text-xs text-slate-500 mt-1">${window.escapeHtml(proj.startDate)}${displayPerson}${displayLocation} | ${window.escapeHtml(proj.presentationTitle || '')}</div>
                             </div>
                         </div>
                         <div class="flex items-center gap-4 mt-3 sm:mt-0 font-bold">
