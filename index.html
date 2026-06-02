@@ -1168,15 +1168,15 @@
                 if (proj.importance === 'highest') { 
                     impBadge = '<span class="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded border border-rose-200 font-bold whitespace-nowrap">最重要</span>'; 
                     impBorder = 'border-slate-200 border-l-[6px] border-l-rose-500'; 
-                    taskImpBorder = 'border-l-[4px] border-l-rose-500';
+                    taskImpBorder = 'border-l-[8px] border-l-rose-500';
                 } else if (proj.importance === 'high') { 
                     impBadge = '<span class="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0.5 rounded border border-orange-200 font-bold whitespace-nowrap">重要</span>'; 
                     impBorder = 'border-slate-200 border-l-[6px] border-l-orange-500'; 
-                    taskImpBorder = 'border-l-[4px] border-l-orange-500';
+                    taskImpBorder = 'border-l-[8px] border-l-orange-500';
                 } else if (proj.importance === 'low') { 
                     impBadge = '<span class="bg-yellow-100 text-yellow-700 text-[10px] px-1.5 py-0.5 rounded border border-yellow-200 font-bold whitespace-nowrap">やや重要</span>'; 
                     impBorder = 'border-slate-200 border-l-[6px] border-l-yellow-400'; 
-                    taskImpBorder = 'border-l-[4px] border-l-yellow-400';
+                    taskImpBorder = 'border-l-[8px] border-l-yellow-400';
                 }
 
                 html += `<div class="bg-white border ${impBorder} rounded-xl shadow-sm overflow-hidden">
@@ -1272,7 +1272,6 @@
                                     <td class="p-3 group">
                                         <div class="flex items-center gap-2">
                                             ${isOverdue ? '<span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded font-black whitespace-nowrap border border-rose-200" title="期日を過ぎています">遅延</span>' : ''}
-                                            ${impBadge}
                                             ${starBadge}
                                             <input type="text" value="${window.escapeHtml(t.name)}" readonly class="task-name-input w-full bg-transparent outline-none font-bold transition-colors ${t.completed?'line-through text-slate-400 font-medium': isOverdue ? 'text-rose-700' : 'text-slate-700'}">
                                         </div>
@@ -1397,17 +1396,13 @@
                             const btnStars = priVal === 3 ? '★★★' : priVal === 2 ? '★★' : priVal === 1 ? '★' : '☆';
                             const btnClass = priVal > 0 ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-400';
 
-                            let impBadge = '';
                             let taskImpBorder = '';
                             if (t.pImportance === 'highest') { 
-                                impBadge = '<span class="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded border border-rose-200 font-bold whitespace-nowrap">最重要</span>'; 
-                                taskImpBorder = 'border-l-[4px] border-l-rose-500'; 
+                                taskImpBorder = 'border-l-[8px] border-l-rose-500'; 
                             } else if (t.pImportance === 'high') { 
-                                impBadge = '<span class="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0.5 rounded border border-orange-200 font-bold whitespace-nowrap">重要</span>'; 
-                                taskImpBorder = 'border-l-[4px] border-l-orange-500'; 
+                                taskImpBorder = 'border-l-[8px] border-l-orange-500'; 
                             } else if (t.pImportance === 'low') { 
-                                impBadge = '<span class="bg-yellow-100 text-yellow-700 text-[10px] px-1.5 py-0.5 rounded border border-yellow-200 font-bold whitespace-nowrap">やや重要</span>'; 
-                                taskImpBorder = 'border-l-[4px] border-l-yellow-400'; 
+                                taskImpBorder = 'border-l-[8px] border-l-yellow-400'; 
                             }
 
                             return `<tr class="hover:bg-slate-50 transition-colors ${isOverdue ? 'bg-rose-50/50' : ''}">
@@ -1425,7 +1420,6 @@
                                 <div class="text-xs font-bold text-slate-400 mb-0.5">${window.escapeHtml(t.pName)}</div>
                                 <div class="flex items-center gap-2">
                                     ${isOverdue ? '<span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded font-black whitespace-nowrap border border-rose-200" title="期日を過ぎています">遅延</span>' : ''}
-                                    ${impBadge}
                                     ${starBadge}
                                     <input type="text" value="${window.escapeHtml(t.name)}" readonly class="task-name-input w-full bg-transparent outline-none font-bold transition-colors ${t.completed?'line-through text-slate-400 font-medium': isOverdue ? 'text-rose-700' : 'text-slate-800'}">
                                 </div>
