@@ -294,7 +294,17 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end mt-4">
+                <div class="mt-4 mb-6 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                    <label class="block text-xs font-bold text-slate-500 mb-2">プロジェクトの重要度（任意）</label>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="flex items-center gap-1 text-sm font-medium cursor-pointer text-slate-600"><input type="radio" name="simProjImportance" value="" checked class="w-4 h-4"> 表示なし</label>
+                        <label class="flex items-center gap-1 text-sm font-bold cursor-pointer text-rose-600"><input type="radio" name="simProjImportance" value="highest" class="w-4 h-4 accent-rose-600"> 最重要</label>
+                        <label class="flex items-center gap-1 text-sm font-bold cursor-pointer text-orange-500"><input type="radio" name="simProjImportance" value="high" class="w-4 h-4 accent-orange-500"> 重要</label>
+                        <label class="flex items-center gap-1 text-sm font-bold cursor-pointer text-yellow-600"><input type="radio" name="simProjImportance" value="low" class="w-4 h-4 accent-yellow-600"> やや重要</label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
                     <button type="button" onclick="importProject()" class="w-full md:w-auto bg-slate-900 text-white font-bold px-8 py-2.5 rounded shadow hover:bg-slate-800 transition whitespace-nowrap text-sm">
                         スケジュール作成
                     </button>
@@ -614,7 +624,7 @@
 
                             const existingTask = p.tasks.find(t => t.name === '査読結果通知');
                             if (!existingTask) {
-                                p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: correctDueDate, completed: false });
+                                p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: correctDueDate, completed: false, priority: 0 });
                                 p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
                                 migrated = true;
                             } else if (existingTask.dueDate !== correctDueDate) {
@@ -650,7 +660,7 @@
                         const existingTask = p.tasks.find(t => t.name === '査読結果通知');
                         let needsUpdate = false;
                         if (!existingTask) {
-                            p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: correctDueDate, completed: false });
+                            p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: correctDueDate, completed: false, priority: 0 });
                             needsUpdate = true;
                         } else if (existingTask.dueDate !== correctDueDate) {
                             existingTask.dueDate = correctDueDate;
@@ -711,6 +721,8 @@
 
         window.importProject = async () => {
             const type = document.querySelector('input[name="projType"]:checked').value;
+            const projImportance = document.querySelector('input[name="simProjImportance"]:checked').value;
+            
             let name, title = '', format = '', status = '', peerReview = '査読無', url = '', location = '', startDate, endDate, memo = '', templates = [], pi = '', coi = '', collab = '';
             let customTasks = [];
 
@@ -760,7 +772,7 @@
                     startDate = document.getElementById('simCustomSingleDate').value;
                     endDate = startDate;
                     if (!name || !startDate) return await window.customAlert('必須項目を入力してください。');
-                    customTasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: `${name} (実施日/本番)`, dueDate: startDate, completed: false });
+                    customTasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: `${name} (実施日/本番)`, dueDate: startDate, completed: false, priority: 0 });
                 } else {
                     startDate = document.getElementById('simCustomStartDate').value;
                     endDate = document.getElementById('simCustomEndDate').value;
@@ -773,7 +785,7 @@
                     let count = 1;
                     while (curr <= end) {
                         const dateStr = curr.toISOString().split('T')[0];
-                        customTasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: `${name} (第${count}回)`, dueDate: dateStr, completed: false });
+                        customTasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: `${name} (第${count}回)`, dueDate: dateStr, completed: false, priority: 0 });
                         if (freq === 'weekly') curr.setDate(curr.getDate() + 7);
                         else if (freq === 'biweekly') curr.setDate(curr.getDate() + 14);
                         else if (freq === 'monthly') curr.setMonth(curr.getMonth() + 1);
@@ -792,7 +804,7 @@
                 tasks = templates.map(t => {
                     const d = new Date(startDate);
                     d.setDate(d.getDate() + t.offsetDays);
-                    return { id: 't_' + Math.random().toString(36).substr(2, 9), name: t.name, dueDate: d.toISOString().split('T')[0], completed: false };
+                    return { id: 't_' + Math.random().toString(36).substr(2, 9), name: t.name, dueDate: d.toISOString().split('T')[0], completed: false, priority: 0 };
                 });
                 if (peerReview === '査読有') {
                     let reviewNoticeDate = new Date(startDate);
@@ -800,7 +812,7 @@
                         reviewNoticeDate.setDate(reviewNoticeDate.getDate() - 90);
                     }
                     reviewNoticeDate.setMonth(reviewNoticeDate.getMonth() + 2);
-                    tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: reviewNoticeDate.toISOString().split('T')[0], completed: false });
+                    tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: reviewNoticeDate.toISOString().split('T')[0], completed: false, priority: 0 });
                 }
             }
 
@@ -810,6 +822,7 @@
                 id: 'p_' + Math.random().toString(36).substr(2, 9),
                 projectType: type, name, presentationTitle: title, presentationFormat: format,
                 presentationStatus: status, pi, coi, collab, peerReview, memo, url, location, startDate, endDate, tasks, 
+                importance: projImportance,
                 isExpanded: true, status: 'active', attachments: []
             };
 
@@ -818,12 +831,14 @@
             await saveProject(newProj);
             window.toggleAddForm();
             
+            // リセット
             const formIds = ['simConfName', 'simConfTitle', 'simConfStatus', 'simConfUrl', 'simConfLocation', 'simConfMemo', 'simConfStartDate', 'simConfEndDate', 'simPaperName', 'simPaperTitle', 'simPaperStatus', 'simPaperUrl', 'simPaperLocation', 'simPaperMemo', 'simPaperStartDate', 'simGrantName', 'simGrantTitle', 'simGrantPI', 'simGrantCoI', 'simGrantCollab', 'simGrantUrl', 'simGrantMemo', 'simGrantStartDate', 'simCustomName', 'simCustomSingleDate', 'simCustomStartDate', 'simCustomEndDate', 'simCustomLocation', 'simCustomPerson', 'simCustomMemo'];
             formIds.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
             document.getElementById('simConfFormat').value = '';
             document.getElementById('simConfPeerReview').value = '査読無';
             document.getElementById('simPaperFormat').value = '論文';
             document.getElementById('simPaperPeerReview').value = '査読無';
+            document.querySelector('input[name="simProjImportance"][value=""]').checked = true;
         };
 
         window.duplicateProject = async (pid) => {
@@ -850,6 +865,18 @@
         window.toggleTask = async (pid, tid) => {
             const p = window.projects.find(x => x.id === pid);
             if(p){ const t = p.tasks.find(x => x.id === tid); if(t){ t.completed = !t.completed; t.completedAt = t.completed ? getJSTDateStr() : null; window.render(); await saveProject(p); } }
+        };
+
+        window.cycleTaskPriority = async (pid, tid) => {
+            const p = window.projects.find(x => x.id === pid);
+            if(p){ 
+                const t = p.tasks.find(x => x.id === tid); 
+                if(t){ 
+                    t.priority = ((t.priority || 0) + 1) % 4; 
+                    window.render(); 
+                    await saveProject(p); 
+                } 
+            }
         };
 
         window.toggleTaskEdit = async (pid, tid, btn) => {
@@ -885,7 +912,6 @@
                 const p = window.projects.find(x => x.id === pid);
                 if(p){ 
                     const t = p.tasks.find(x => x.id === tid); 
-                    // 値が実際に変更された時のみ処理を実行（余計な再描画によるカレンダー強制終了を防ぐ）
                     if(t && t.dueDate !== val){ 
                         t.dueDate = val; 
                         p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)); 
@@ -906,6 +932,8 @@
             const n = document.getElementById(`cName_${pid}`);
             const startDateInput = document.getElementById(`cDate_${pid}`);
             const isRecur = document.getElementById(`cRecurToggle_${pid}`)?.checked;
+            const priVal = parseInt(document.getElementById(`cPriority_${pid}`)?.value || '0', 10);
+
             if(!n.value || !startDateInput.value) return await window.customAlert('タスク名と日付を入力してください');
             const p = window.projects.find(x => x.id === pid);
             if(!p) return;
@@ -918,7 +946,7 @@
                 const end = new Date(endDateInput.value);
                 let count = 1;
                 while(curr <= end) {
-                    newTasks.push({id:'t_'+Math.random().toString(36).substr(2,9), name: `${n.value} (第${count}回)`, dueDate: curr.toISOString().split('T')[0], completed: false});
+                    newTasks.push({id:'t_'+Math.random().toString(36).substr(2,9), name: `${n.value} (第${count}回)`, dueDate: curr.toISOString().split('T')[0], completed: false, priority: priVal});
                     if (freq === 'weekly') curr.setDate(curr.getDate() + 7);
                     else if (freq === 'biweekly') curr.setDate(curr.getDate() + 14);
                     else if (freq === 'monthly') curr.setMonth(curr.getMonth() + 1);
@@ -926,10 +954,15 @@
                     count++;
                 }
             } else {
-                newTasks.push({id:'t_'+Math.random().toString(36).substr(2,9), name: n.value, dueDate: startDateInput.value, completed: false});
+                newTasks.push({id:'t_'+Math.random().toString(36).substr(2,9), name: n.value, dueDate: startDateInput.value, completed: false, priority: priVal});
             }
             p.tasks.push(...newTasks); p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)); 
-            n.value=''; startDateInput.value=''; window.render(); await saveProject(p);
+            
+            n.value=''; startDateInput.value=''; 
+            const priSelect = document.getElementById(`cPriority_${pid}`);
+            if(priSelect) priSelect.value = '0';
+            
+            window.render(); await saveProject(p);
         };
 
         window.addAttachmentLink = async (pid) => {
@@ -1006,6 +1039,7 @@
                     const prEl = document.getElementById(`editPeerReview_${id}`); if (prEl) p.peerReview = prEl.value;
                     const locEl = document.getElementById(`editLocation_${id}`); if (locEl) p.location = locEl.value;
                     const memoEl = document.getElementById(`editMemo_${id}`); if(memoEl) p.memo = memoEl.value;
+                    const impEl = document.getElementById(`editImportance_${id}`); if (impEl) p.importance = impEl.value;
                     
                     const startEl = document.getElementById(`editStartDate_${id}`); if(startEl) p.startDate = startEl.value;
                     const endEl = document.getElementById(`editEndDate_${id}`); p.endDate = endEl ? endEl.value || p.startDate : p.startDate;
@@ -1041,7 +1075,7 @@
             if(p){
                 REVIEW_TASKS.forEach(tpl => {
                     const d = new Date(); d.setDate(d.getDate() + tpl.offsetDays);
-                    p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: tpl.name, dueDate: d.toISOString().split('T')[0], completed: false });
+                    p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: tpl.name, dueDate: d.toISOString().split('T')[0], completed: false, priority: 0 });
                 });
                 p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)); window.render(); await saveProject(p);
             }
@@ -1126,7 +1160,14 @@
                 // 開催地（場所）の表示用文字列を作成（論文以外で表示）
                 const displayLocation = (proj.location && proj.projectType !== 'paper') ? ` | 📍 ${window.escapeHtml(proj.location)}` : '';
 
-                html += `<div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                // プロジェクト重要度のバッジと枠線
+                let impBadge = '';
+                let impBorder = 'border-slate-200';
+                if (proj.importance === 'highest') { impBadge = '<span class="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded border border-rose-200 ml-2 font-bold">最重要</span>'; impBorder = 'border-slate-200 border-l-[6px] border-l-rose-500'; }
+                else if (proj.importance === 'high') { impBadge = '<span class="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0.5 rounded border border-orange-200 ml-2 font-bold">重要</span>'; impBorder = 'border-slate-200 border-l-[6px] border-l-orange-500'; }
+                else if (proj.importance === 'low') { impBadge = '<span class="bg-yellow-100 text-yellow-700 text-[10px] px-1.5 py-0.5 rounded border border-yellow-200 ml-2 font-bold">やや重要</span>'; impBorder = 'border-slate-200 border-l-[6px] border-l-yellow-400'; }
+
+                html += `<div class="bg-white border ${impBorder} rounded-xl shadow-sm overflow-hidden">
                     ${proj.isEditing ? `
                     <div class="p-4 bg-slate-50 border-b border-slate-200 text-sm">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
@@ -1154,8 +1195,15 @@
                             `}
 
                             ${proj.projectType !== 'grant' ? `
-                                <div class="md:col-span-3">${proj.projectType === 'paper' ? '規定メモ(文字数等)' : '開催地 / 場所'}: <input type="text" id="editLocation_${proj.id}" value="${window.escapeHtml(proj.location || '')}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
+                                <div class="md:col-span-2">${proj.projectType === 'paper' ? '規定メモ(文字数等)' : '開催地 / 場所'}: <input type="text" id="editLocation_${proj.id}" value="${window.escapeHtml(proj.location || '')}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
                             ` : ''}
+
+                            <div>重要度: <select id="editImportance_${proj.id}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500">
+                                <option value="" ${!proj.importance ? 'selected' : ''}>表示なし</option>
+                                <option value="highest" ${proj.importance === 'highest' ? 'selected' : ''}>最重要</option>
+                                <option value="high" ${proj.importance === 'high' ? 'selected' : ''}>重要</option>
+                                <option value="low" ${proj.importance === 'low' ? 'selected' : ''}>やや重要</option>
+                            </select></div>
 
                             <div class="md:col-span-3">メモ: <textarea id="editMemo_${proj.id}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500" rows="2">${window.escapeHtml(proj.memo)}</textarea></div>
                             <div>開始/〆切: <input type="date" id="editStartDate_${proj.id}" value="${window.escapeHtml(proj.startDate)}" class="w-full p-2 border rounded text-base focus:outline-none focus:border-indigo-500"></div>
@@ -1169,7 +1217,7 @@
                             </button>
                             <div>
                                 <h3 class="text-lg font-black flex items-center flex-wrap gap-1">
-                                    ${icon} ${window.escapeHtml(proj.name)}
+                                    ${icon} ${window.escapeHtml(proj.name)} ${impBadge}
                                     ${proj.projectType === 'conference' || proj.projectType === 'paper' ? `<span class="text-[10px] px-1.5 py-0.5 rounded border inline-flex items-center gap-0.5 ${proj.peerReview === '査読有' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200'} ml-2 font-bold">${proj.peerReview === '査読有' ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>' : ''}${window.escapeHtml(proj.peerReview) || '査読無'}</span>` : ''}
                                     ${proj.url ? `<a href="${proj.url}" target="_blank" onclick="event.stopPropagation()" class="ml-2 text-slate-400 hover:text-blue-600 transition" title="公式サイトを開く"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>` : ''}
                                 </h3>
@@ -1194,6 +1242,12 @@
                             <tbody class="divide-y divide-slate-100">
                                 ${proj.tasks.filter(t => !(t.completed && isOldTask(t.completedAt))).map(t => {
                                     const isOverdue = !t.completed && t.dueDate < todayStr;
+                                    const priVal = t.priority || 0;
+                                    const starsText = priVal === 3 ? '★★★' : priVal === 2 ? '★★' : priVal === 1 ? '★' : '';
+                                    const starBadge = priVal > 0 ? `<span class="text-amber-500 font-bold mr-1 text-xs tracking-widest">${starsText}</span>` : '';
+                                    const btnStars = priVal === 3 ? '★★★' : priVal === 2 ? '★★' : priVal === 1 ? '★' : '☆';
+                                    const btnClass = priVal > 0 ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-400';
+
                                     return `<tr class="${t.completed?'bg-slate-50': isOverdue ? 'bg-rose-50/50' : ''} transition-colors">
                                     <td class="p-3 w-12 text-center cursor-pointer" onclick="toggleTask('${proj.id}','${t.id}')">
                                         <div class="w-5 h-5 rounded flex items-center justify-center border ${t.completed ? 'bg-indigo-500 border-indigo-500 text-white' : isOverdue ? 'border-rose-400 bg-white' : 'border-slate-300 bg-white'} transition-colors mx-auto">
@@ -1206,10 +1260,12 @@
                                     <td class="p-3 group">
                                         <div class="flex items-center gap-2">
                                             ${isOverdue ? '<span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded font-black whitespace-nowrap border border-rose-200" title="期日を過ぎています">遅延</span>' : ''}
+                                            ${starBadge}
                                             <input type="text" value="${window.escapeHtml(t.name)}" readonly class="task-name-input w-full bg-transparent outline-none font-bold transition-colors ${t.completed?'line-through text-slate-400 font-medium': isOverdue ? 'text-rose-700' : 'text-slate-700'}">
                                         </div>
                                     </td>
-                                    <td class="p-3 w-[120px] text-right space-x-2 whitespace-nowrap">
+                                    <td class="p-3 text-right space-x-1 sm:space-x-2 whitespace-nowrap">
+                                        <button type="button" onclick="cycleTaskPriority('${proj.id}','${t.id}')" class="text-[10px] sm:text-xs font-bold w-6 text-center ${btnClass} transition" title="優先度を変更">${btnStars}</button>
                                         <button type="button" onclick="toggleTaskEdit('${proj.id}','${t.id}',this)" class="text-orange-400 hover:text-orange-600 transition" title="タスク名を編集">
                                             <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                         </button>
@@ -1268,6 +1324,12 @@
 
                         <div class="p-3 bg-white border-t flex flex-wrap gap-2 items-center">
                             <input type="text" id="cName_${proj.id}" placeholder="新しいタスク..." class="flex-1 text-sm border rounded px-3 py-2 min-w-[200px] focus:outline-none focus:border-indigo-500">
+                            <select id="cPriority_${proj.id}" class="text-sm border rounded px-2 py-2 text-slate-600 focus:outline-none focus:border-indigo-500">
+                                <option value="0">優先度-</option>
+                                <option value="1">★</option>
+                                <option value="2">★★</option>
+                                <option value="3">★★★</option>
+                            </select>
                             <input type="date" id="cDate_${proj.id}" class="text-sm border rounded px-2 py-2 text-slate-600 focus:outline-none focus:border-indigo-500">
                             <button type="button" onclick="addCustomTask('${proj.id}')" class="bg-slate-700 text-white px-4 py-2 rounded text-sm font-bold hover:bg-slate-600 transition shadow-sm flex items-center gap-1">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -1297,7 +1359,7 @@
                     if (window.timelineFilter === '1m' && dueDate > oneMonthLater) show = false;
                     if (window.timelineFilter === '2m' && dueDate > twoMonthsLater) show = false;
                     if (show) {
-                        all.push({...t, pId:p.id, pName:p.name, pType:p.projectType});
+                        all.push({...t, pId:p.id, pName:p.name, pType:p.projectType, pImportance: p.importance});
                     }
                 }
             }));
@@ -1311,11 +1373,22 @@
             container.innerHTML = `<div class="bg-white border rounded-xl overflow-hidden shadow-sm">
                 <table class="w-full text-sm sm:text-base">
                     <thead class="bg-slate-900 text-white text-xs uppercase tracking-wider">
-                        <tr><th class="p-4 w-12"></th><th class="p-4 w-36 text-left font-bold">期日</th><th class="p-4 text-left font-bold">内容</th><th class="p-4 w-[120px] text-right font-bold">操作</th></tr>
+                        <tr><th class="p-4 w-12"></th><th class="p-4 w-36 text-left font-bold">期日</th><th class="p-4 text-left font-bold">内容</th><th class="p-4 text-right font-bold">操作</th></tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         ${all.map(t => {
                             const isOverdue = !t.completed && t.dueDate < todayStr;
+                            const priVal = t.priority || 0;
+                            const starsText = priVal === 3 ? '★★★' : priVal === 2 ? '★★' : priVal === 1 ? '★' : '';
+                            const starBadge = priVal > 0 ? `<span class="text-amber-500 font-bold mr-1 text-xs tracking-widest">${starsText}</span>` : '';
+                            const btnStars = priVal === 3 ? '★★★' : priVal === 2 ? '★★' : priVal === 1 ? '★' : '☆';
+                            const btnClass = priVal > 0 ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-400';
+
+                            let impBadge = '';
+                            if (t.pImportance === 'highest') { impBadge = '<span class="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded border border-rose-200 ml-1 font-bold">最重要</span>'; }
+                            else if (t.pImportance === 'high') { impBadge = '<span class="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0.5 rounded border border-orange-200 ml-1 font-bold">重要</span>'; }
+                            else if (t.pImportance === 'low') { impBadge = '<span class="bg-yellow-100 text-yellow-700 text-[10px] px-1.5 py-0.5 rounded border border-yellow-200 ml-1 font-bold">やや重要</span>'; }
+
                             return `<tr class="hover:bg-slate-50 transition-colors ${isOverdue ? 'bg-rose-50/50' : ''}">
                             <td class="p-3 text-center cursor-pointer" onclick="toggleTask('${t.pId}','${t.id}')">
                                 <div class="w-5 h-5 rounded flex items-center justify-center border ${t.completed ? 'bg-indigo-500 border-indigo-500 text-white' : isOverdue ? 'border-rose-400 bg-white' : 'border-slate-300 bg-white'} transition-colors mx-auto">
@@ -1328,13 +1401,15 @@
                                 </div>
                             </td>
                             <td class="p-3 group">
-                                <div class="text-xs font-bold text-slate-400 mb-0.5">${window.escapeHtml(t.pName)}</div>
+                                <div class="text-xs font-bold text-slate-400 mb-0.5">${window.escapeHtml(t.pName)} ${impBadge}</div>
                                 <div class="flex items-center gap-2">
                                     ${isOverdue ? '<span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded font-black whitespace-nowrap border border-rose-200" title="期日を過ぎています">遅延</span>' : ''}
+                                    ${starBadge}
                                     <input type="text" value="${window.escapeHtml(t.name)}" readonly class="task-name-input w-full bg-transparent outline-none font-bold transition-colors ${t.completed?'line-through text-slate-400 font-medium': isOverdue ? 'text-rose-700' : 'text-slate-800'}">
                                 </div>
                             </td>
-                            <td class="p-3 w-[120px] text-right space-x-2 whitespace-nowrap">
+                            <td class="p-3 text-right space-x-1 sm:space-x-2 whitespace-nowrap">
+                                <button type="button" onclick="cycleTaskPriority('${t.pId}','${t.id}')" class="text-[10px] sm:text-xs font-bold w-6 text-center ${btnClass} transition" title="優先度を変更">${btnStars}</button>
                                 <button type="button" onclick="toggleTaskEdit('${t.pId}','${t.id}',this)" class="text-orange-400 hover:text-orange-600 transition" title="タスク名を編集">
                                     <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                 </button>
