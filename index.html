@@ -912,6 +912,7 @@
                 const p = window.projects.find(x => x.id === pid);
                 if(p){ 
                     const t = p.tasks.find(x => x.id === tid); 
+                    // 値が実際に変更された時のみ処理を実行（余計な再描画によるカレンダー強制終了を防ぐ）
                     if(t && t.dueDate !== val){ 
                         t.dueDate = val; 
                         p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)); 
@@ -1163,9 +1164,20 @@
                 // プロジェクト重要度のバッジと枠線
                 let impBadge = '';
                 let impBorder = 'border-slate-200';
-                if (proj.importance === 'highest') { impBadge = '<span class="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded border border-rose-200 ml-2 font-bold">最重要</span>'; impBorder = 'border-slate-200 border-l-[6px] border-l-rose-500'; }
-                else if (proj.importance === 'high') { impBadge = '<span class="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0.5 rounded border border-orange-200 ml-2 font-bold">重要</span>'; impBorder = 'border-slate-200 border-l-[6px] border-l-orange-500'; }
-                else if (proj.importance === 'low') { impBadge = '<span class="bg-yellow-100 text-yellow-700 text-[10px] px-1.5 py-0.5 rounded border border-yellow-200 ml-2 font-bold">やや重要</span>'; impBorder = 'border-slate-200 border-l-[6px] border-l-yellow-400'; }
+                let taskImpBorder = '';
+                if (proj.importance === 'highest') { 
+                    impBadge = '<span class="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded border border-rose-200 font-bold whitespace-nowrap">最重要</span>'; 
+                    impBorder = 'border-slate-200 border-l-[6px] border-l-rose-500'; 
+                    taskImpBorder = 'border-l-[4px] border-l-rose-500';
+                } else if (proj.importance === 'high') { 
+                    impBadge = '<span class="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0.5 rounded border border-orange-200 font-bold whitespace-nowrap">重要</span>'; 
+                    impBorder = 'border-slate-200 border-l-[6px] border-l-orange-500'; 
+                    taskImpBorder = 'border-l-[4px] border-l-orange-500';
+                } else if (proj.importance === 'low') { 
+                    impBadge = '<span class="bg-yellow-100 text-yellow-700 text-[10px] px-1.5 py-0.5 rounded border border-yellow-200 font-bold whitespace-nowrap">やや重要</span>'; 
+                    impBorder = 'border-slate-200 border-l-[6px] border-l-yellow-400'; 
+                    taskImpBorder = 'border-l-[4px] border-l-yellow-400';
+                }
 
                 html += `<div class="bg-white border ${impBorder} rounded-xl shadow-sm overflow-hidden">
                     ${proj.isEditing ? `
@@ -1217,7 +1229,7 @@
                             </button>
                             <div>
                                 <h3 class="text-lg font-black flex items-center flex-wrap gap-1">
-                                    ${icon} ${window.escapeHtml(proj.name)} ${impBadge}
+                                    ${icon} ${window.escapeHtml(proj.name)} ${impBadge ? `<span class="ml-1">${impBadge}</span>` : ''}
                                     ${proj.projectType === 'conference' || proj.projectType === 'paper' ? `<span class="text-[10px] px-1.5 py-0.5 rounded border inline-flex items-center gap-0.5 ${proj.peerReview === '査読有' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200'} ml-2 font-bold">${proj.peerReview === '査読有' ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>' : ''}${window.escapeHtml(proj.peerReview) || '査読無'}</span>` : ''}
                                     ${proj.url ? `<a href="${proj.url}" target="_blank" onclick="event.stopPropagation()" class="ml-2 text-slate-400 hover:text-blue-600 transition" title="公式サイトを開く"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>` : ''}
                                 </h3>
@@ -1244,12 +1256,12 @@
                                     const isOverdue = !t.completed && t.dueDate < todayStr;
                                     const priVal = t.priority || 0;
                                     const starsText = priVal === 3 ? '★★★' : priVal === 2 ? '★★' : priVal === 1 ? '★' : '';
-                                    const starBadge = priVal > 0 ? `<span class="text-amber-500 font-bold mr-1 text-xs tracking-widest">${starsText}</span>` : '';
+                                    const starBadge = priVal > 0 ? `<span class="text-amber-500 font-bold text-xs tracking-widest">${starsText}</span>` : '';
                                     const btnStars = priVal === 3 ? '★★★' : priVal === 2 ? '★★' : priVal === 1 ? '★' : '☆';
                                     const btnClass = priVal > 0 ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-400';
 
                                     return `<tr class="${t.completed?'bg-slate-50': isOverdue ? 'bg-rose-50/50' : ''} transition-colors">
-                                    <td class="p-3 w-12 text-center cursor-pointer" onclick="toggleTask('${proj.id}','${t.id}')">
+                                    <td class="p-3 w-12 text-center cursor-pointer ${taskImpBorder}" onclick="toggleTask('${proj.id}','${t.id}')">
                                         <div class="w-5 h-5 rounded flex items-center justify-center border ${t.completed ? 'bg-indigo-500 border-indigo-500 text-white' : isOverdue ? 'border-rose-400 bg-white' : 'border-slate-300 bg-white'} transition-colors mx-auto">
                                             ${t.completed ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>' : ''}
                                         </div>
@@ -1260,6 +1272,7 @@
                                     <td class="p-3 group">
                                         <div class="flex items-center gap-2">
                                             ${isOverdue ? '<span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded font-black whitespace-nowrap border border-rose-200" title="期日を過ぎています">遅延</span>' : ''}
+                                            ${impBadge}
                                             ${starBadge}
                                             <input type="text" value="${window.escapeHtml(t.name)}" readonly class="task-name-input w-full bg-transparent outline-none font-bold transition-colors ${t.completed?'line-through text-slate-400 font-medium': isOverdue ? 'text-rose-700' : 'text-slate-700'}">
                                         </div>
@@ -1380,17 +1393,25 @@
                             const isOverdue = !t.completed && t.dueDate < todayStr;
                             const priVal = t.priority || 0;
                             const starsText = priVal === 3 ? '★★★' : priVal === 2 ? '★★' : priVal === 1 ? '★' : '';
-                            const starBadge = priVal > 0 ? `<span class="text-amber-500 font-bold mr-1 text-xs tracking-widest">${starsText}</span>` : '';
+                            const starBadge = priVal > 0 ? `<span class="text-amber-500 font-bold text-xs tracking-widest">${starsText}</span>` : '';
                             const btnStars = priVal === 3 ? '★★★' : priVal === 2 ? '★★' : priVal === 1 ? '★' : '☆';
                             const btnClass = priVal > 0 ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-400';
 
                             let impBadge = '';
-                            if (t.pImportance === 'highest') { impBadge = '<span class="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded border border-rose-200 ml-1 font-bold">最重要</span>'; }
-                            else if (t.pImportance === 'high') { impBadge = '<span class="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0.5 rounded border border-orange-200 ml-1 font-bold">重要</span>'; }
-                            else if (t.pImportance === 'low') { impBadge = '<span class="bg-yellow-100 text-yellow-700 text-[10px] px-1.5 py-0.5 rounded border border-yellow-200 ml-1 font-bold">やや重要</span>'; }
+                            let taskImpBorder = '';
+                            if (t.pImportance === 'highest') { 
+                                impBadge = '<span class="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded border border-rose-200 font-bold whitespace-nowrap">最重要</span>'; 
+                                taskImpBorder = 'border-l-[4px] border-l-rose-500'; 
+                            } else if (t.pImportance === 'high') { 
+                                impBadge = '<span class="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0.5 rounded border border-orange-200 font-bold whitespace-nowrap">重要</span>'; 
+                                taskImpBorder = 'border-l-[4px] border-l-orange-500'; 
+                            } else if (t.pImportance === 'low') { 
+                                impBadge = '<span class="bg-yellow-100 text-yellow-700 text-[10px] px-1.5 py-0.5 rounded border border-yellow-200 font-bold whitespace-nowrap">やや重要</span>'; 
+                                taskImpBorder = 'border-l-[4px] border-l-yellow-400'; 
+                            }
 
                             return `<tr class="hover:bg-slate-50 transition-colors ${isOverdue ? 'bg-rose-50/50' : ''}">
-                            <td class="p-3 text-center cursor-pointer" onclick="toggleTask('${t.pId}','${t.id}')">
+                            <td class="p-3 text-center cursor-pointer ${taskImpBorder}" onclick="toggleTask('${t.pId}','${t.id}')">
                                 <div class="w-5 h-5 rounded flex items-center justify-center border ${t.completed ? 'bg-indigo-500 border-indigo-500 text-white' : isOverdue ? 'border-rose-400 bg-white' : 'border-slate-300 bg-white'} transition-colors mx-auto">
                                     ${t.completed ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>' : ''}
                                 </div>
@@ -1401,9 +1422,10 @@
                                 </div>
                             </td>
                             <td class="p-3 group">
-                                <div class="text-xs font-bold text-slate-400 mb-0.5">${window.escapeHtml(t.pName)} ${impBadge}</div>
+                                <div class="text-xs font-bold text-slate-400 mb-0.5">${window.escapeHtml(t.pName)}</div>
                                 <div class="flex items-center gap-2">
                                     ${isOverdue ? '<span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded font-black whitespace-nowrap border border-rose-200" title="期日を過ぎています">遅延</span>' : ''}
+                                    ${impBadge}
                                     ${starBadge}
                                     <input type="text" value="${window.escapeHtml(t.name)}" readonly class="task-name-input w-full bg-transparent outline-none font-bold transition-colors ${t.completed?'line-through text-slate-400 font-medium': isOverdue ? 'text-rose-700' : 'text-slate-800'}">
                                 </div>
