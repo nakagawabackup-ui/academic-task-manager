@@ -298,7 +298,7 @@
                     <label class="block text-xs font-bold text-slate-500 mb-2">プロジェクトの重要度（任意）</label>
                     <div class="flex flex-wrap gap-4">
                         <label class="flex items-center gap-1 text-sm font-medium cursor-pointer text-slate-600"><input type="radio" name="simProjImportance" value="" checked class="w-4 h-4"> 表示なし</label>
-                        <label class="flex items-center gap-1 text-sm font-bold cursor-pointer text-red-900"><input type="radio" name="simProjImportance" value="highest" class="w-4 h-4 accent-red-900"> 最重要</label>
+                       <label class="flex items-center gap-1 text-sm font-bold cursor-pointer text-red-900"><input type="radio" name="simProjImportance" value="highest" class="w-4 h-4 accent-red-900"> 最重要</label>
                         <label class="flex items-center gap-1 text-sm font-bold cursor-pointer text-orange-500"><input type="radio" name="simProjImportance" value="high" class="w-4 h-4 accent-orange-500"> 重要</label>
                         <label class="flex items-center gap-1 text-sm font-bold cursor-pointer text-yellow-600"><input type="radio" name="simProjImportance" value="low" class="w-4 h-4 accent-yellow-600"> やや重要</label>
                     </div>
@@ -1165,9 +1165,9 @@
                 
                 let taskImpBorder = '';
                 if (proj.importance === 'highest') { 
-                    impBadge = '<span class="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded border border-rose-200 font-bold whitespace-nowrap">最重要</span>'; 
-                    impBorder = 'border-slate-200 border-l-[6px] border-l-rose-500'; 
-                    taskImpBorder = 'border-l-[8px] border-l-rose-500';
+                    impBadge = '<span class="bg-red-50 text-red-900 text-[10px] px-1.5 py-0.5 rounded border border-red-200 font-bold whitespace-nowrap">最重要</span>'; 
+                    impBorder = 'border-slate-200 border-l-[6px] border-l-red-900'; 
+                    taskImpBorder = 'border-l-[8px] border-l-red-900';
                 } else if (proj.importance === 'high') { 
                     impBadge = '<span class="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0.5 rounded border border-orange-200 font-bold whitespace-nowrap">重要</span>'; 
                     impBorder = 'border-slate-200 border-l-[6px] border-l-orange-500'; 
@@ -1397,7 +1397,7 @@
 
                             let taskImpBorder = '';
                             if (t.pImportance === 'highest') { 
-                                taskImpBorder = 'border-l-[8px] border-l-rose-500'; 
+                                taskImpBorder = 'border-l-[8px] border-l-red-900'; 
                             } else if (t.pImportance === 'high') { 
                                 taskImpBorder = 'border-l-[8px] border-l-orange-500'; 
                             } else if (t.pImportance === 'low') { 
