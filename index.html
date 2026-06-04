@@ -612,31 +612,6 @@
             if (savedData) { 
                 try { 
                     window.projects = JSON.parse(savedData); 
-                    let migrated = false;
-                    window.projects.forEach(p => {
-                        if ((p.projectType === 'conference' || p.projectType === 'paper') && p.peerReview === '査読有') {
-                            let d = new Date(p.startDate);
-                            if (p.projectType === 'conference') {
-                                d.setDate(d.getDate() - 90);
-                            }
-                            d.setMonth(d.getMonth() + 2);
-                            const correctDueDate = d.toISOString().split('T')[0];
-
-                            const existingTask = p.tasks.find(t => t.name === '査読結果通知');
-                            if (!existingTask) {
-                                p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: correctDueDate, completed: false, priority: 0 });
-                                p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
-                                migrated = true;
-                            } else if (existingTask.dueDate !== correctDueDate) {
-                                existingTask.dueDate = correctDueDate;
-                                p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
-                                migrated = true;
-                            }
-                        }
-                    });
-                    if (migrated) {
-                        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(window.projects));
-                    }
                 } catch(e) { window.projects = []; } 
             }
             window.render();
@@ -649,29 +624,6 @@
                 let synced = [];
                 snapshot.forEach(document => { 
                     let p = { id: document.id, ...document.data() }; 
-                    if ((p.projectType === 'conference' || p.projectType === 'paper') && p.peerReview === '査読有') {
-                        let d = new Date(p.startDate);
-                        if (p.projectType === 'conference') {
-                            d.setDate(d.getDate() - 90);
-                        }
-                        d.setMonth(d.getMonth() + 2);
-                        const correctDueDate = d.toISOString().split('T')[0];
-
-                        const existingTask = p.tasks.find(t => t.name === '査読結果通知');
-                        let needsUpdate = false;
-                        if (!existingTask) {
-                            p.tasks.push({ id: 't_' + Math.random().toString(36).substr(2, 9), name: '査読結果通知', dueDate: correctDueDate, completed: false, priority: 0 });
-                            needsUpdate = true;
-                        } else if (existingTask.dueDate !== correctDueDate) {
-                            existingTask.dueDate = correctDueDate;
-                            needsUpdate = true;
-                        }
-                        
-                        if (needsUpdate) {
-                            p.tasks.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
-                            setDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'projects', p.id), p);
-                        }
-                    }
                     synced.push(p); 
                 });
                 window.projects = synced;
